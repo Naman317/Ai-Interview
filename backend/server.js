@@ -8,6 +8,7 @@ import userRoutes from "./routes/userRoutes.js";
 import sessionRoutes from "./routes/sessionRoutes.js";
 import sheetRoutes from "./routes/sheetRoutes.js";
 import questionRoutes from "./routes/questionRoutes.js";
+import interviewRoutes from "./routes/interviewRoutes.js";
 import path from "path";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
@@ -59,6 +60,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use('/api/sheets', sheetRoutes);
 app.use('/api/questions', questionRoutes);
+app.use('/api/interview', interviewRoutes);
 
 io.on("connection", (socket) => {
     console.log(`A user Connected ${socket.id}`);

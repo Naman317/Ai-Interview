@@ -3,6 +3,7 @@ import asyncHandler from 'express-async-handler';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { processCVFile } from '../services/cvParser.js';
 
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -188,4 +189,54 @@ const uploadCV = asyncHandler(async (req, res) => {
     }
 });
 
-export { registerUser, loginUser, googleLogin, getUserProfile, updateUserProfile, uploadCV };
+// @desc    Parse uploaded CV and extract information
+// @route   POST /api/users/parse-cv
+// @access  Private
+const parseCV = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const { filePath } = req.body;
+
+    if (!filePath) {
+        res.status(400);
+        throw new Error('File path is required');
+    }
+
+    try {
+        const cvData = await processCVFile(filePath);
+
+        const user = await User.findByIdAndUpdate(
+            userId,
+            {
+                cvParsed: {
+                    skills: cvData.data.skills,
+                    experience: cvData.data.experience,
+                    projects: cvData.data.projects,
+                    education: cvData.data.education,
+                    summary: cvData.data.summary,
+                    yearsOfExperience: cvData.data.yearsOfExperience,
+                    technicalKeywords: cvData.data.technicalKeywords,
+                    parsedAt: new Date()
+                }
+            },
+            { new: true }
+        );
+
+        if (user) {
+            res.status(200).json({
+                message: 'CV parsed successfully',
+                cvData: user.cvParsed,
+                skills: cvData.data.skills,
+                experience: cvData.data.yearsOfExperience,
+                summary: cvData.data.summary
+            });
+        } else {
+            res.status(404);
+            throw new Error('User not found');
+        }
+    } catch (error) {
+        res.status(500);
+        throw new Error(`CV parsing failed: ${error.message}`);
+    }
+});
+
+export { registerUser, loginUser, googleLogin, getUserProfile, updateUserProfile, uploadCV, parseCV };

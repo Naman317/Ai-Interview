@@ -22,11 +22,12 @@ const userSchema=mongoose.Schema({
         type:String,
         unique:true,
         sparse:true
-    } ,
+    },
     preferredRole:{
         type:String,
         default:"MERN Stack Developer"
     },
+    // CV Information
     cvUrl:{
         type:String,
         default:null
@@ -35,6 +36,36 @@ const userSchema=mongoose.Schema({
         type:String,
         default:null
     },
+    cvParsed:{
+        skills:[String],
+        experience:[
+            {
+                title:String,
+                company:String
+            }
+        ],
+        projects:[String],
+        education:[String],
+        summary:String,
+        yearsOfExperience:Number,
+        technicalKeywords:[String],
+        parsedAt:Date
+    },
+    // Interview Statistics
+    totalInterviews:{
+        type:Number,
+        default:0
+    },
+    averageScore:{
+        type:Number,
+        default:0
+    },
+    interviewSessions:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Session"
+        }
+    ]
 },{
     timestamps:true
 })
