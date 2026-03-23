@@ -32,7 +32,7 @@ except (ImportError, ModuleNotFoundError):
 load_dotenv()
 
 AI_SERVICE_PORT = int(os.getenv("AI_SERVICE_PORT",8000))
-OLLAMA_MODEL_NAME=os.getenv("OLLAMA_MODEL_NAME","phi")
+OLLAMA_MODEL_NAME=os.getenv("OLLAMA_MODEL_NAME","mistral")  # Upgraded from 'phi' to 'mistral' for better quality
 
 app=FastAPI(title="AI Interviewer Microservice",version="1.0")
 
@@ -172,22 +172,29 @@ async def generate_questions(request:QuestionResquest):
             resume_context += "\nIMPORTANT: Generate questions that are personalized based on the candidate's background and skills. Ask about specific technologies they know and their experience level."
 
         system_prompt=(
-            "You are a professional technical interviewer. "
-            "Task: Generate interview questions. No conversational text or numbering. "
-            f"Crucial : {intruction}"
-            "Output exactly one question per line. "
+            "You are a professional technical interviewer with expertise in evaluating candidates. "
+            "Your task: Generate diverse, role-appropriate interview questions that assess both technical and soft skills. "
+            f"Interview Type: {intruction} "
+            "CRITICAL RULES:\n"
+            "1. Output EXACTLY ONE question per line\n"
+            "2. NO numbering, NO explanations, NO extra text\n"
+            "3. Each question should be unique and progressively deeper\n"
+            "4. Use open-ended questions that reveal problem-solving ability\n"
             f"{resume_context}"
         )
 
         user_prompt=(
-            f"Generate exactly {request.count} unique interview questions for a {request.level}  level {request.role} "
+            f"Generate exactly {request.count} unique, challenging interview questions for:\n"
+            f"Role: {request.level} level {request.role}\n"
+            f"Format: One question per line. No numbering or preamble."
         )
         try:
             response=ollama.generate(
                 model=OLLAMA_MODEL_NAME,
                 prompt=user_prompt,
                 system=system_prompt,
-                options={"temperature":0.6}
+                stream=False,
+                options={"temperature":0.7, "top_p":0.9, "top_k":40}
             )
         except Exception as e:
             # If Ollama fails, fall back to mock questions
@@ -285,13 +292,14 @@ async def evaluate(request:EvaluationRequest):
             )
         
         system_prompt=(
-            "You are a sstrict technical interviewer. "
-            "Do NOT hallucinate positive reviews for bad input. "
-            "RULE 1: If the answer is gibberish, irrelevant, or missing, return 'technicalScore':0 and 'confidenceScore':0. "
-            "RULE 2: For 'idealAnswer', provide a clean Markdown string.Do NOT return a nested JSON object. "
-            f"Context:{assessment_intruction}"
-            "Respond ONLY with a JSON object. "
-            "Required keys: 'technicalScore' (0-100), 'confidenceScore' (0-100), 'aiFeedback', 'idealAnswer'. "
+            "You are a strict, fair technical interviewer. Your evaluation must be accurate and unbiased.\n"
+            "CRITICAL EVALUATION RULES:\n"
+            "1. If answer is gibberish/empty/irrelevant → technicalScore=0, confidenceScore=0\n"
+            "2. Score based on: correctness, depth, clarity, edge case handling, code efficiency\n"
+            "3. Return ONLY valid JSON (no markdown, no nested objects in string fields)\n"
+            "4. Provide constructive, specific feedback\n"
+            f"Assessment Context: {assessment_intruction}\n"
+            "Output Format: {\"technicalScore\": (0-100), \"confidenceScore\": (0-100), \"aiFeedback\": \"string\", \"idealAnswer\": \"string\"}"
         )
         user_prompt=(
            
@@ -307,7 +315,8 @@ async def evaluate(request:EvaluationRequest):
                 prompt=user_prompt,
                 system=system_prompt,
                 format="json",
-                options={"temperature":0.1}
+                stream=False,
+                options={"temperature":0.2, "top_p":0.85}
             )
         except Exception as e:
             # If Ollama fails, return mock evaluation

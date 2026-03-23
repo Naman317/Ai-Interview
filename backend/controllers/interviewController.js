@@ -5,6 +5,7 @@ import Feedback from '../models/FeedbackModel.js';
 import User from '../models/User.js';
 import axios from 'axios';
 import fs from 'fs';
+import { executeJavaScriptCode, getEnhancedCodeEvaluation } from '../services/codeExecutor.js';
 
 // AI Service URL
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
@@ -165,7 +166,7 @@ export const submitAnswer = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const evaluateAnswer = asyncHandler(async (req, res) => {
-    const { sessionId, questionIndex } = req.body;
+    const { sessionId, questionIndex, testCases } = req.body;
     const userId = req.user._id;
 
     if (!sessionId || questionIndex === undefined) {
@@ -193,20 +194,45 @@ export const evaluateAnswer = asyncHandler(async (req, res) => {
             throw new Error('Question not yet submitted');
         }
 
-        // Call AI service for evaluation
-        const evaluationResponse = await axios.post(
-            `${AI_SERVICE_URL}/evaluate`,
-            {
-                question: question.questionText,
-                question_type: question.questionType,
-                role: session.role,
-                level: session.level,
-                user_answer: question.userAnswerText,
-                user_code: question.userSubmittedCode
-            }
-        );
+        let evaluation = {};
+        let codeExecutionResults = null;
 
-        const evaluation = evaluationResponse.data;
+        // For coding questions, execute code first, then combine with AI evaluation
+        if (question.questionType === 'coding' && question.userSubmittedCode) {
+            try {
+                // Execute code with provided test cases
+                codeExecutionResults = await executeJavaScriptCode(
+                    question.userSubmittedCode,
+                    testCases,
+                    5000 // 5 second timeout
+                );
+
+                // Get enhanced evaluation combining execution + AI analysis
+                evaluation = await getEnhancedCodeEvaluation(
+                    question.userSubmittedCode,
+                    codeExecutionResults,
+                    question.questionText,
+                    session.role,
+                    session.level
+                );
+
+                // Map enhanced evaluation to standard format
+                evaluation = {
+                    technicalScore: evaluation.totalScore,
+                    confidenceScore: Math.round(evaluation.codeQuality.testPassRate * 100),
+                    aiFeedback: evaluation.feedback,
+                    idealAnswer: evaluation.idealAnswer || 'Implement a solution that passes all test cases with optimal time/space complexity',
+                    codeExecutionResults: codeExecutionResults
+                };
+            } catch (codeError) {
+                console.error('Code execution error:', codeError.message);
+                // Fall back to AI-only evaluation if code execution fails
+                evaluation = await callAIEvaluation(question, session);
+            }
+        } else {
+            // For non-coding questions, use AI evaluation only
+            evaluation = await callAIEvaluation(question, session);
+        }
 
         // Update question with evaluation
         question.technicalScore = evaluation.technicalScore || 0;
@@ -214,6 +240,7 @@ export const evaluateAnswer = asyncHandler(async (req, res) => {
         question.aiFeedback = evaluation.aiFeedback || '';
         question.idealAnswer = evaluation.idealAnswer || '';
         question.isEvaluated = true;
+        question.codeExecutionResults = codeExecutionResults;
 
         // Calculate session metrics
         const evaluatedQuestions = session.questions.filter(q => q.isEvaluated);
@@ -232,7 +259,13 @@ export const evaluateAnswer = asyncHandler(async (req, res) => {
         await session.save();
 
         res.json({
-            evaluation,
+            evaluation: {
+                technicalScore: evaluation.technicalScore,
+                confidenceScore: evaluation.confidenceScore,
+                aiFeedback: evaluation.aiFeedback,
+                idealAnswer: evaluation.idealAnswer
+            },
+            codeExecutionResults: codeExecutionResults,
             sessionScore: session.overallScore
         });
     } catch (error) {
@@ -241,6 +274,36 @@ export const evaluateAnswer = asyncHandler(async (req, res) => {
         throw new Error(`Failed to evaluate answer: ${error.message}`);
     }
 });
+
+/**
+ * Helper function to call AI service for evaluation
+ */
+async function callAIEvaluation(question, session) {
+    try {
+        const evaluationResponse = await axios.post(
+            `${AI_SERVICE_URL}/evaluate`,
+            {
+                question: question.questionText,
+                question_type: question.questionType,
+                role: session.role,
+                level: session.level,
+                user_answer: question.userAnswerText,
+                user_code: question.userSubmittedCode
+            }
+        );
+
+        return evaluationResponse.data;
+    } catch (error) {
+        console.error('AI Evaluation failed:', error.message);
+        // Return mock evaluation
+        return {
+            technicalScore: 60,
+            confidenceScore: 65,
+            aiFeedback: 'Answer submitted. Please try to be more specific.',
+            idealAnswer: 'A comprehensive answer should address all aspects of the question.'
+        };
+    }
+}
 
 /**
  * @desc    Complete interview and generate feedback
