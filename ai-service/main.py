@@ -104,29 +104,103 @@ class ProblemResponse(BaseModel):
     testCases: list[dict]
     constraints: list[str]
 
-# Mock data for when Ollama is not available
+# Mock data for when Ollama is not available - NOW WITH REALISTIC INTERVIEW QUESTIONS
 MOCK_QUESTIONS = {
     "MERN Stack Developer": {
         "Junior": [
-            "Explain the difference between var, let, and const in JavaScript",
-            "What is the purpose of useEffect hook in React?",
-            "How does MongoDB store data compared to relational databases?",
-            "Write a function to find the largest number in an array",
-            "What is middleware in Express.js and how does it work?"
+            "Tell me about a project where you built a React component. How did you structure it and what challenges did you face?",
+            "Explain the difference between state and props in React. Can you give a real example from your projects?",
+            "What's your experience with Node.js backend development? Walk me through how you built an API endpoint.",
+            "How do you handle asynchronous operations in JavaScript? Give me an example from your work.",
+            "Describe your experience with MongoDB. How would you design a data schema for a blog application?"
         ],
         "Mid-Level": [
-            "Explain how React's Virtual DOM works",
-            "Design a caching strategy for a MongoDB application",
-            "Write a function to debounce API calls",
-            "How would you handle authentication in a MERN stack application?",
-            "Explain the concept of closures in JavaScript"
+            "Tell me about a time when you had to optimize a React component's performance. What tools did you use and what was the outcome?",
+            "How would you design a system to handle real-time notifications using Node.js and WebSockets? What trade-offs would you consider?",
+            "Describe your approach to error handling in a full-stack application. Walk through your strategy from frontend to database.",
+            "Have you dealt with database indexing or query optimization in MongoDB? Tell me about a specific scenario.",
+            "How do you approach testing in a MERN stack? What's your experience with unit, integration, and end-to-end testing?",
+            "What's the most complex feature you've built with React? How did you manage state?",
+            "Explain how you would implement authentication in a MERN app. What security considerations matter most?"
         ],
         "Senior": [
-            "Design a scalable microservices architecture using Node.js",
-            "How would you optimize database queries in MongoDB for a large dataset?",
-            "Implement a custom React hook for complex state management",
-            "What strategies would you use for deploying a MERN application?",
-            "Explain how to implement real-time features using WebSockets"
+            "Design a real-time collaborative document editor using MERN stack. How would you handle concurrent users editing the same document?",
+            "Tell me about an architectural decision you made that you later regretted. What would you do differently?",
+            "How would you scale a MERN application to handle millions of concurrent users? Walk me through your approach.",
+            "Describe your experience with microservices. How have you transitioned from monolithic to microservice architecture?",
+            "What's your approach to database schema evolution and migrations in a production system?",
+            "Tell me about a time you had to mentor a junior developer on React best practices. What was most important to teach them?",
+            "How do you approach technical debt? When do you decide it's time to refactor vs. moving forward with new features?",
+            "Describe your experience with deployment and CI/CD pipelines. How do you ensure reliability in production?"
+        ]
+    },
+    "Frontend Developer": {
+        "Junior": [
+            "Tell me about the last website you built. What was the most challenging part of implementing the UI?",
+            "How do you approach responsive design? Walk me through your process for making sites work on mobile, tablet, and desktop.",
+            "What's your experience with CSS? Can you explain how flexbox or grid works?",
+            "Describe a time when you debugged a tricky frontend issue. What was the problem and how did you solve it?",
+            "What's your understanding of the DOM? How would you manipulate it with JavaScript?"
+        ],
+        "Mid-Level": [
+            "Tell me about your experience with modern frontend frameworks. Why did you choose the ones you work with?",
+            "How do you approach performance optimization in frontend applications? What metrics do you care about?",
+            "Describe the most complex component you've built. How did you handle state management and prop drilling?",
+            "What's your experience with accessibility (a11y)? How do you ensure your UIs are accessible?",
+            "Tell me about your approach to testing frontend code. What tools do you prefer and why?"
+        ],
+        "Senior": [
+            "Design a design system from scratch. How would you structure components and ensure consistency across products?",
+            "Tell me about your experience at scale. How have you optimized performance when dealing with millions of users?",
+            "How do you approach technical leadership on a frontend team? Describe your mentoring philosophy.",
+            "What's your vision for the future of frontend development? What technologies excite you?",
+            "Describe a complex feature you built that required cross-team coordination. How did you manage stakeholder expectations?"
+        ]
+    },
+    "Full Stack Developer": {
+        "Junior": [
+            "Walk me through the last full-stack project you built, from frontend to database. What was your architecture?",
+            "How do you approach debugging issues in a full-stack application? What's your process?",
+            "Tell me about your experience with databases. How would you design a schema for an e-commerce site?",
+            "Describe how you built an API. What did you consider for performance and security?",
+            "What tools do you use for version control and deployment? Walk me through your workflow."
+        ],
+        "Mid-Level": [
+            "Tell me about a production incident you dealt with. How did you diagnose and fix it?",
+            "How do you approach API design? What makes a good REST API?",
+            "Describe your experience with database optimization. When would you use caching vs. query optimization?",
+            "Tell me about your approach to security in a full-stack application. What are your biggest concerns?",
+            "How do you balance technical debt with shipping new features? Give me a real example."
+        ],
+        "Senior": [
+            "Design a system that processes millions of requests per day. Walk me through your architecture decisions.",
+            "Tell me about your philosophy on system design. What principles guide your architectural decisions?",
+            "How do you handle scaling challenges? Describe a complex scaling problem you've solved.",
+            "What's your approach to building teams and mentoring engineers? How do you foster a strong engineering culture?",
+            "Tell me about a time you simplified a complex system. What was the impact?"
+        ]
+    },
+    "DevOps Engineer": {
+        "Junior": [
+            "Tell me about your experience with Docker and containerization. Walk me through how you'd containerize an application.",
+            "What's your experience with CI/CD pipelines? Describe a pipeline you've built or worked with.",
+            "How do you approach infrastructure as code? What tools have you used?",
+            "Tell me about your experience with cloud platforms. Which one do you know best and why?",
+            "Describe how you'd troubleshoot a failing deployment. What's your process?"
+        ],
+        "Mid-Level": [
+            "Design a CI/CD pipeline for a microservices application with thousands of deployments per day.",
+            "Tell me about monitoring and logging in your systems. How do you ensure visibility into production?",
+            "Describe your approach to disaster recovery and high availability. What RTO/RPO targets do you typically aim for?",
+            "How do you handle infrastructure scaling? Tell me about a time you had to scale rapidly.",
+            "What's your experience with Kubernetes? How do you manage resource allocation and orchestration?"
+        ],
+        "Senior": [
+            "Design a cloud infrastructure for a startup expecting to grow 10x in the next year. What decisions would you make?",
+            "Tell me about your experience with security in DevOps. How do you balance security and development velocity?",
+            "Describe your approach to cost optimization in the cloud. What strategies have you used?",
+            "How do you build DevOps culture in an organization? Tell me about your approach to empowering teams.",
+            "What's your vision for the future of infrastructure? How would you prepare for emerging technologies?"
         ]
     }
 }
@@ -147,46 +221,124 @@ async def generate_questions(request:QuestionResquest):
             return QuestionResponse(questions=questions, model_used="mock-questions")
         
         if request.interview_type=="video":
-            intruction=(
-                "Generate ONLY behavioral and communication-focused questions for video interviews. "
-                "Include questions about background, motivations, challenges faced, interpersonal skills, and problem-solving approach. "
-                "Keep questions professional but conversational."
+            interview_focus=(
+                "behavioral_and_communication"
+            )
+            interview_instruction=(
+                "Videos allow assessment of communication skills, presence, and authenticity. "
+                "Mix behavioral questions (STAR method answers) with technical questions. "
+                "Include questions that reveal how they communicate under pressure."
+                " Sometime Mix algorithmic problems with system design conceptual questions. "
+                "Include questions about edge cases and optimization."
+                "Include follow-up questions that probe deeper into their knowledge."
             )
         elif request.interview_type=="voice":
-            intruction=(
-                "Generate ONLY conceptual and behavioral questions for voice interviews. "
-                "Include questions about technical knowledge, experience, problem-solving, teamwork, and career goals. "
-                "Mix both technical and soft skills questions appropriately."
+            interview_focus=(
+                "technical_and_behavioral"
+            )
+            interview_instruction=(
+                "Voice interviews focus on technical depth and problem-solving communication. "
+                "Ask progressively harder technical questions. "
+                " Sometime Mix algorithmic problems with system design conceptual questions. "
+                "Include questions about edge cases and optimization."
+                "Include follow-up questions that probe deeper into their knowledge."
             )
         else:
-            intruction="Generate interview questions appropriate for technical interviews."
+            interview_focus=(
+                "coding_and_technical"
+            )
+            interview_instruction=(
+                "Coding interviews assess algorithm knowledge, problem-solving approach, and code quality. "
+                "Mix algorithmic problems with system design conceptual questions. "
+                "Include questions about edge cases and optimization."
+            )
 
         # Build resume-aware context
         resume_context = ""
+        resume_context_line = ""
         if request.resume_context:
-            resume_context = f"\nCandidate Background: {request.resume_context}"
-            if request.resume_skills:
-                resume_context += f"\nKey Skills: {', '.join(request.resume_skills[:10])}"
-            if request.resume_experience_years:
-                resume_context += f"\nYears of Experience: {request.resume_experience_years}"
-            resume_context += "\nIMPORTANT: Generate questions that are personalized based on the candidate's background and skills. Ask about specific technologies they know and their experience level."
+            resume_context += f"Candidate Background: {request.resume_context}\n"
+            resume_context_line += resume_context
+        if request.resume_skills:
+            top_skills = request.resume_skills[:8]
+            resume_context += f"Key Skills: {', '.join(top_skills)}\n"
+            resume_context_line += f"Key Skills: {', '.join(top_skills)}\n"
+        if request.resume_experience_years:
+            experience_text = f"{request.resume_experience_years} years of experience"
+            resume_context += f"Experience Level: {experience_text}\n"
+            resume_context_line += f"Experience Level: {experience_text}\n"
+        
+        # Generate experience-level specific guidance
+        if request.level.lower() == "junior":
+            difficulty_instruction = (
+                "DIFFICULTY LEVEL - JUNIOR:\n"
+                "- Ask foundational and practical questions\n"
+                "- Include 'real project' scenarios to understand their experience with actual code\n"
+                "- Ask about specific tech stacks they list on resume\n"
+                "- Include 1-2 coding fundamentals questions\n"
+                "- Assess learning ability and growth mindset"
+            )
+        elif request.level.lower() == "mid-level" or request.level.lower() == "mid level":
+            difficulty_instruction = (
+                "DIFFICULTY LEVEL - MID-LEVEL:\n"
+                "- Mix foundational + advanced technical questions\n"
+                "- Ask about architectural decisions they've made\n"
+                "- Include system design concepts (scaling, caching, databases)\n"
+                "- Ask about trade-offs and optimization strategies\n"
+                "- Assess leadership skills and mentoring ability"
+            )
+        else:  # Senior
+            difficulty_instruction = (
+                "DIFFICULTY LEVEL - SENIOR:\n"
+                "- Focus on complex system design and architectural decisions\n"
+                "- Ask about past challenges and how they handled technical debt\n"
+                "- Questions about scaling systems to millions of users\n"
+                "- Leadership, mentoring, and technical strategy questions\n"
+                "- Industry trends and forward-thinking questions\n"
+                "- Assess judgment, experience, and strategic thinking"
+            )
 
         system_prompt=(
-            "You are a professional technical interviewer with expertise in evaluating candidates. "
-            "Your task: Generate diverse, role-appropriate interview questions that assess both technical and soft skills. "
-            f"Interview Type: {intruction} "
-            "CRITICAL RULES:\n"
+            "You are an experienced technical interviewer for a top-tier tech company. "
+            "Your goal: Generate interview questions that feel REAL and like what actual interviewers would ask. "
+            f"\n{interview_instruction}\n"
+            f"\n{difficulty_instruction}\n"
+            f"\nQUESTION GENERATION GUIDELINES:\n"
+            "1. Questions should sound natural - as if spoken by a human interviewer\n"
+            "2. Avoid generic questions - be specific to the role and their background\n"
+            "3. Mix question types:\n"
+            "   - Behavioral: 'Tell me about a time when...', 'How do you...', 'Describe your experience with...'\n"
+            "   - Technical: Problem-solving, architecture, specific technology questions\n"
+            "   - Situational: 'How would you handle...', 'What if...'\n"
+            "   - Real Project: Ask about specific projects from their resume\n"
+            "4. Progress from easier to harder questions naturally\n"
+            "5. Include follow-up style questions that show interviewer engagement\n"
+            "6. Ask questions that reveal problem-solving process, not just answers\n"
+            "\nQUESTION QUALITY STANDARDS:\n"
+            "- Each question should be open-ended and thought-provoking\n"
+            "- Questions should encourage detailed answers (2-5 minute responses)\n"
+            "- Avoid yes/no questions\n"
+            "- Make questions specific enough to assess real skills\n"
+            "- Include depth - questions that can't be answered from Google\n"
+            f"\nRESUME CONTEXT:\n{resume_context_line}"
+            "IMPORTANT: Personalize questions based on their resume. If they mention React, ask about React specifically. "
+            "If they have 5+ years experience, ask senior-level questions.\n"
+            "\nOUTPUT FORMAT:\n"
             "1. Output EXACTLY ONE question per line\n"
             "2. NO numbering, NO explanations, NO extra text\n"
-            "3. Each question should be unique and progressively deeper\n"
-            "4. Use open-ended questions that reveal problem-solving ability\n"
-            f"{resume_context}"
+            "3. Each question is complete and ready to ask\n"
+            "4. Questions feel natural and conversational"
         )
 
         user_prompt=(
-            f"Generate exactly {request.count} unique, challenging interview questions for:\n"
-            f"Role: {request.level} level {request.role}\n"
-            f"Format: One question per line. No numbering or preamble."
+            f"Generate exactly {request.count} interview questions for a {request.level} level {request.role}.\n"
+            f"\nThese questions should:\n"
+            f"- Feel like a real interview (natural, conversational, engaging)\n"
+            f"- Assess both technical ability and soft skills\n"
+            f"- Progress from easier to more challenging\n"
+            f"- Be specific to {request.role} role\n"
+            f"- Be appropriate for {'video interview' if request.interview_type == 'video' else 'technical interview'}\n"
+            f"\nFormat: One question per line, no numbering. Ready to ask a candidate."
         )
         try:
             response=ollama.generate(
@@ -279,35 +431,59 @@ async def evaluate(request:EvaluationRequest):
                 )
         
         if request.question_type=="oral":
-            assessment_intruction=(
-                "This is a conceptual oral question. Focus purely on candidate's veral explanation. "
-                "Ignore any code blocks. "
-                "CRITICAL: If the transcript is empty, nonsense (e.g. 'blah blah','testing') or irrelevent to the question, SCORE 0."
+            assessment_instruction=(
+                "ORAL/BEHAVIORAL QUESTION EVALUATION:\n"
+                "Assess the quality of their explanation, clarity of thought, and depth of knowledge.\n"
+                "Look for: clear communication, specific examples, demonstrates thinking process, addresses multiple aspects of question.\n"
+                "Red flags: vague answers, no examples, doesn't answer the actual question asked, hesitation/uncertainty.\n"
+                "Excellent: Can clearly explain complex concepts, provides real project examples, shows critical thinking."
             )
         else:
-            assessment_intruction=(
-                "This is a coding challenge question. Evaluate the code logic and efficiency. "
-                "Use the transcription only for insight into their thought process. "
-                "CRITICAL: If the code is 'udefined',empty, just random comments, or random characters, SCORE 0."
+            assessment_instruction=(
+                "TECHNICAL/CODING QUESTION EVALUATION:\n"
+                "Assess the correctness of approach/code, efficiency, code quality, and problem-solving methodology.\n"
+                "Look for: correct solution, considers edge cases, clean code, explains trade-offs, optimizes when needed.\n"
+                "Red flags: doesn't compile/run, major logical flaws, no consideration of efficiency, poor code structure.\n"
+                "Excellent: Correct solution, optimal or near-optimal, clean implementation, explains reasoning."
             )
         
         system_prompt=(
-            "You are a strict, fair technical interviewer. Your evaluation must be accurate and unbiased.\n"
-            "CRITICAL EVALUATION RULES:\n"
-            "1. If answer is gibberish/empty/irrelevant → technicalScore=0, confidenceScore=0\n"
-            "2. Score based on: correctness, depth, clarity, edge case handling, code efficiency\n"
-            "3. Return ONLY valid JSON (no markdown, no nested objects in string fields)\n"
-            "4. Provide constructive, specific feedback\n"
-            f"Assessment Context: {assessment_intruction}\n"
-            "Output Format: {\"technicalScore\": (0-100), \"confidenceScore\": (0-100), \"aiFeedback\": \"string\", \"idealAnswer\": \"string\"}"
+            "You are an experienced technical interviewer conducting a real interview. "
+            "Your job: Fairly evaluate a candidate's response based on what a real company would expect.\n\n"
+            "EVALUATION CRITERIA:\n"
+            "Technical Score (0-100): How well they answered - correctness, completeness, depth\n"
+            "  - 90-100: Expert level, production-ready solution\n"
+            "  - 80-89: Very good, minor improvements\n"
+            "  - 70-79: Solid understanding, could use improvement\n"
+            "  - 60-69: Acceptable for their level, but gaps exist\n"
+            "  - 50-59: Below expectations, significant issues\n"
+            "  - Below 50: Major problems, doesn't meet basic requirements\n\n"
+            "Confidence Score (0-100): How confident and communicative they were\n"
+            "  - How clearly they explained their thinking\n"
+            "  - Whether they seemed confident or uncertain\n"
+            "  - Communication quality and professionalism\n\n"
+            f"{assessment_instruction}\n\n"
+            "IMPORTANT: Give feedback as a real interviewer would:\n"
+            "- Be specific about what was good and what needs improvement\n"
+            "- Be fair and calibrated to their experience level\n"
+            "- Highlight patterns, not just isolated issues\n"
+            "- Provide constructive and actionable feedback\n\n"
+            "Output ONLY valid JSON (no markdown, no extra text)."
         )
+        
         user_prompt=(
-           
-            f"Role: {request.role}\n"
-            f"Question: {request.question}\n"
-            f"Level: {request.level}\n"
-            f"Verbal Answer: {request.user_answer or 'No verbal answer provided'}\n"
-            f"Code Answer: {request.user_code or 'No code provided'}\n"
+            f"Evaluate this interview response:\n\n"
+            f"CONTEXT:\n"
+            f"  Role: {request.role}\n"
+            f"  Level: {request.level}\n"
+            f"  Question Type: {request.question_type}\n\n"
+            f"QUESTION ASKED:\n"
+            f"  {request.question}\n\n"
+            f"CANDIDATE'S RESPONSE:\n"
+            f"  Verbal Answer: {request.user_answer or '(No verbal answer)'}\n"
+            f"  Code/Solution: {request.user_code or '(No code provided)'}\n\n"
+            f"Provide your evaluation as a fair interviewer would.\n"
+            f"Return only JSON with: technicalScore, confidenceScore, aiFeedback, idealAnswer"
         )
         try:
             response=ollama.generate(

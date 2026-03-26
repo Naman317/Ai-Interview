@@ -1,4 +1,7 @@
-import pdfParse from 'pdf-parse';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
+
 import fs from 'fs';
 import path from 'path';
 
