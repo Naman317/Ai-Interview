@@ -21,10 +21,14 @@ function InterviewRunner() {
   const [submittedLocal, setSubmittedLocal] = useState({});
   const [transcript, setTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [evaluationResults, setEvaluationResults] = useState({});
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [pollingInterval, setPollingInterval] = useState(null);
 
   const recognitionRef = useRef(null);
   const transcriptRef = useRef('');
   const timerIntervalRef = useRef(null);
+  const pollCountRef = useRef(0);
 
   // Initialize Web Speech API
   useEffect(() => {
@@ -89,6 +93,43 @@ function InterviewRunner() {
     }
   }, [activeSession?.status, dispatch, sessionId]);
 
+  // Poll for evaluation results
+  useEffect(() => {
+    let pollTimer;
+    if (isEvaluating && sessionId) {
+      pollCountRef.current = 0;
+      pollTimer = setInterval(() => {
+        pollCountRef.current += 1;
+        // Refresh session to get latest evaluation
+        dispatch(getSessionById(sessionId));
+      }, 1000);
+    }
+    return () => {
+      if (pollTimer) clearInterval(pollTimer);
+    };
+  }, [isEvaluating, sessionId, dispatch]);
+
+  // Check if evaluation is complete
+  useEffect(() => {
+    if (isEvaluating && activeSession?.questions?.[currentQuestionIndex]) {
+      const currentQuestion = activeSession.questions[currentQuestionIndex];
+      
+      if (currentQuestion?.isEvaluated && !evaluationResults[currentQuestionIndex]) {
+        setEvaluationResults(prev => ({
+          ...prev,
+          [currentQuestionIndex]: {
+            technicalScore: currentQuestion.technicalScore || 0,
+            confidenceScore: currentQuestion.confidenceScore || 0,
+            aiFeedback: currentQuestion.aiFeedback || 'Pending evaluation...',
+            idealAnswer: currentQuestion.idealAnswer || 'Pending...',
+            userAnswerText: currentQuestion.userAnswerText || ''
+          }
+        }));
+        setIsEvaluating(false);
+      }
+    }
+  }, [activeSession, currentQuestionIndex, isEvaluating, evaluationResults]);
+
   useEffect(() => {
     if (isRecording) {
       timerIntervalRef.current = setInterval(() => {
@@ -147,6 +188,9 @@ function InterviewRunner() {
       }
 
       try {
+        setIsEvaluating(true);
+        pollCountRef.current = 0;
+        
         // Send transcript (not audio) to backend
         await dispatch(submitAnswer({
           sessionId,
@@ -157,16 +201,14 @@ function InterviewRunner() {
         })).unwrap();
 
         setSubmittedLocal(prev => ({ ...prev, [currentQuestionIndex]: true }));
-        toast.success('Answer submitted! Analyzing...');
-
-        const questions = activeSession?.questions || [];
-        if (currentQuestionIndex < questions.length - 1) {
-          setTimeout(() => {
-            setCurrentQuestionIndex(prev => prev + 1);
-          }, 1000);
-        }
+        toast.success('Answer submitted! AI is analyzing...');
+        
+        // Immediately start polling for results
+        dispatch(getSessionById(sessionId));
+        
       } catch (err) {
         console.error('Submit error:', err);
+        setIsEvaluating(false);
         toast.error('Failed to submit answer');
       }
     }, 500);
@@ -174,17 +216,18 @@ function InterviewRunner() {
 
   if (activeSession?.status === 'pending' || isLoading) {
     return (
-      <div className="flex bg-black min-h-screen text-white">
+      <div className="flex min-h-screen bg-background text-white relative font-sans">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full mix-blend-screen animate-float pointer-events-none" />
         <Sidebar />
-        <main className="flex-1 ml-64 flex flex-col items-center justify-center p-8">
-          <div className="max-w-md w-full text-center space-y-6">
+        <main className="flex-1 ml-64 flex flex-col items-center justify-center p-8 relative z-10">
+          <div className="glass-card max-w-md w-full text-center space-y-6 p-12">
             <div className="relative w-24 h-24 mx-auto">
-              <div className="absolute inset-0 border-4 border-blue-600/20 rounded-full" />
-              <div className="absolute inset-0 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
+              <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold">Generating Interview</h2>
-              <p className="text-slate-500 font-medium">AI is crafting personalized questions for you based on the selected role and difficulty...</p>
+              <h2 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">Generating Interview</h2>
+              <p className="text-white/50 font-medium text-sm">AI is crafting personalized questions for you based on the selected role and difficulty...</p>
             </div>
           </div>
         </main>
@@ -194,8 +237,8 @@ function InterviewRunner() {
 
   if (!activeSession) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black text-white">
-        <p className="text-slate-400 font-bold uppercase tracking-widest">Session not found</p>
+      <div className="flex items-center justify-center min-h-screen bg-background text-white font-sans">
+        <p className="text-white/40 font-bold uppercase tracking-widest bg-white/5 px-6 py-3 rounded-full">Session not found</p>
       </div>
     );
   }
@@ -203,21 +246,23 @@ function InterviewRunner() {
   const isAnswered = submittedLocal[currentQuestionIndex];
 
   return (
-    <div className="flex bg-black min-h-screen text-white overflow-hidden">
+    <div className="flex min-h-screen bg-background text-white overflow-hidden font-sans relative">
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full mix-blend-screen animate-float pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/10 blur-[120px] rounded-full mix-blend-screen animate-float pointer-events-none" style={{ animationDelay: '3s' }} />
       <Sidebar />
 
-      <main className="flex-1 ml-64 flex flex-col">
+      <main className="flex-1 ml-64 flex flex-col relative z-10">
         {/* Header */}
-        <header className="p-8 border-b border-slate-900 bg-black/50 backdrop-blur-md sticky top-0 z-40">
+        <header className="p-8 border-b border-white/5 glass sticky top-0 z-40">
           <div className="flex justify-between items-start mb-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <span className="px-3 py-1 bg-blue-600/10 text-blue-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-blue-500/20">
+                <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-lg border border-primary/20">
                   {activeSession.interviewType}
                 </span>
-                <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">• {activeSession.level}</span>
+                <span className="text-white/40 text-[10px] font-bold uppercase tracking-widest">• {activeSession.level}</span>
               </div>
-              <h1 className="text-3xl font-black">{activeSession.role}</h1>
+              <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">{activeSession.role}</h1>
             </div>
 
             <div className="flex gap-3">
@@ -256,15 +301,15 @@ function InterviewRunner() {
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest">
+            <div className="flex justify-between text-[10px] font-black text-white/40 uppercase tracking-widest">
               <span>Progress: {Math.round(progress)}%</span>
               <span>Question {currentQuestionIndex + 1} of {totalQuestions}</span>
             </div>
-            <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+            <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
-                className="bg-blue-600 h-full"
+                className="bg-gradient-to-r from-primary to-accent h-full"
               />
             </div>
           </div>
@@ -278,15 +323,15 @@ function InterviewRunner() {
               key={currentQuestionIndex}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-slate-900/50 border border-slate-800 rounded-3xl p-10 shadow-2xl relative overflow-hidden"
+              className="glass-card p-10 relative overflow-hidden group"
             >
-              <div className="absolute top-0 right-0 p-6 opacity-5">
-                <span className="text-8xl font-black">{currentQuestionIndex + 1}</span>
+              <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+                <span className="text-8xl font-black text-white/20 select-none">{currentQuestionIndex + 1}</span>
               </div>
 
               <div className="relative z-10 space-y-4">
-                <span className="text-blue-500 font-black text-xs uppercase tracking-[0.2em]">Interviewer asks:</span>
-                <h2 className="text-3xl font-bold leading-tight text-white group-hover:text-blue-400 transition-colors">
+                <span className="text-accent font-black text-[10px] uppercase tracking-[0.2em]">Interviewer asks:</span>
+                <h2 className="text-3xl font-bold leading-tight text-white group-hover:text-primary transition-colors duration-300">
                   {currentQuestionText}
                 </h2>
               </div>
@@ -328,8 +373,8 @@ function InterviewRunner() {
                       onClick={startRecording}
                       disabled={isAnswered}
                       className={`flex items-center justify-center gap-3 py-6 rounded-2xl font-black uppercase tracking-widest text-sm transition-all shadow-xl ${isAnswered
-                          ? 'bg-slate-900 border border-slate-800 text-slate-700 cursor-not-allowed'
-                          : 'bg-red-600 hover:bg-red-700 text-white shadow-red-600/20'
+                          ? 'bg-white/5 border border-white/10 text-white/30 cursor-not-allowed'
+                          : 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20'
                         }`}
                     >
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -350,7 +395,7 @@ function InterviewRunner() {
                           navigate(`/review/${sessionId}`);
                         }
                       }}
-                      className="flex items-center justify-center gap-3 py-6 rounded-2xl font-black uppercase tracking-widest text-sm bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-all"
+                      className="flex items-center justify-center gap-3 py-6 rounded-2xl font-black uppercase tracking-widest text-sm bg-white/5 border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all"
                     >
                       {currentQuestionIndex < totalQuestions - 1 ? 'Skip Question' : 'Finish Interview'}
                     </motion.button>
@@ -375,6 +420,78 @@ function InterviewRunner() {
                   Tip: Take a deep breath and explain your thought process clearly.
                 </p>
               </div>
+
+              {/* Evaluation Results Section */}
+              {isEvaluating && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-8 bg-blue-600/5 border-2 border-blue-600/30 rounded-3xl text-center space-y-4"
+                >
+                  <div className="flex justify-center">
+                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-lg font-black text-blue-400">Analyzing Your Answer</p>
+                    <p className="text-sm text-blue-300/70">Our AI is evaluating your response...</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {evaluationResults[currentQuestionIndex] && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4"
+                >
+                  {/* Scores Grid */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-6 bg-gradient-to-br from-blue-600/10 to-blue-600/5 border border-blue-600/30 rounded-2xl text-center">
+                      <p className="text-xs font-black text-blue-400 uppercase tracking-widest mb-2">Technical Score</p>
+                      <p className="text-4xl font-black text-blue-500">{evaluationResults[currentQuestionIndex].technicalScore}%</p>
+                    </div>
+                    <div className="p-6 bg-gradient-to-br from-purple-600/10 to-purple-600/5 border border-purple-600/30 rounded-2xl text-center">
+                      <p className="text-xs font-black text-purple-400 uppercase tracking-widest mb-2">Confidence Score</p>
+                      <p className="text-4xl font-black text-purple-500">{evaluationResults[currentQuestionIndex].confidenceScore}%</p>
+                    </div>
+                  </div>
+
+                  {/* Feedback */}
+                  <div className="p-6 bg-slate-900/50 border border-slate-800 rounded-2xl space-y-3">
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">AI Feedback</p>
+                    <p className="text-white leading-relaxed text-sm">{evaluationResults[currentQuestionIndex].aiFeedback}</p>
+                  </div>
+
+                  {/* Ideal Answer */}
+                  <div className="p-6 bg-green-600/5 border border-green-600/20 rounded-2xl space-y-3">
+                    <p className="text-xs font-black text-green-400 uppercase tracking-widest">Ideal Answer</p>
+                    <p className="text-white/80 leading-relaxed text-sm font-medium">{evaluationResults[currentQuestionIndex].idealAnswer}</p>
+                  </div>
+
+                  {/* Your Submission */}
+                  <div className="p-6 bg-slate-900/30 border border-slate-800 rounded-2xl space-y-3">
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Your Answer</p>
+                    <p className="text-slate-300 leading-relaxed text-sm italic">{evaluationResults[currentQuestionIndex].userAnswerText}</p>
+                  </div>
+
+                  {/* Continue Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      if (currentQuestionIndex < totalQuestions - 1) {
+                        setCurrentQuestionIndex(prev => prev + 1);
+                      } else {
+                        dispatch(endSession(sessionId));
+                        navigate(`/review/${sessionId}`);
+                      }
+                    }}
+                    className="w-full py-6 bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white font-black rounded-2xl uppercase tracking-[0.2em] text-xs transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+                  >
+                    {currentQuestionIndex < totalQuestions - 1 ? '→ Next Question' : '✓ Finish Interview'}
+                  </motion.button>
+                </motion.div>
+              )}
             </div>
           </div>
         </div>

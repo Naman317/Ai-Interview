@@ -92,11 +92,15 @@ export default function NewInterview() {
 
     if (prepStatus) {
         return (
-            <div className="flex bg-black min-h-screen text-white items-center justify-center p-8">
+            <div className="flex bg-background min-h-screen text-white items-center justify-center p-8 relative overflow-hidden font-sans">
+                {/* Dynamic Animated Background Elements */}
+                <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full mix-blend-screen animate-float pointer-events-none" />
+                <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/20 blur-[120px] rounded-full mix-blend-screen animate-float pointer-events-none" style={{ animationDelay: '3s' }} />
+                
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="max-w-md w-full text-center space-y-8"
+                    className="glass-card max-w-md w-full text-center space-y-8 p-12 relative z-10"
                 >
                     <div className="relative w-32 h-32 mx-auto">
                         <motion.div
@@ -129,31 +133,35 @@ export default function NewInterview() {
     }
 
     return (
-        <div className="flex bg-black min-h-screen text-white">
+        <div className="flex min-h-screen bg-background text-white relative overflow-hidden font-sans">
+            {/* Dynamic Animated Background Elements */}
+            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full mix-blend-screen animate-float pointer-events-none" />
+            <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/20 blur-[120px] rounded-full mix-blend-screen animate-float pointer-events-none" style={{ animationDelay: '3s' }} />
+
             <Sidebar />
-            <main className="flex-1 ml-64 p-8">
+            <main className="flex-1 ml-64 p-8 relative z-10">
                 <div className="max-w-4xl mx-auto">
-                    <header className="mb-10">
-                        <h1 className="text-4xl font-black mb-2 uppercase tracking-tight">Setup Interview</h1>
-                        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Choose your path and begin</p>
+                    <header className="mb-10 text-center">
+                        <h1 className="text-4xl font-black mb-2 uppercase tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">Setup Interview</h1>
+                        <p className="text-accent font-bold uppercase tracking-widest text-[10px]">Choose your path and begin</p>
                     </header>
 
                     <div className="flex gap-4 mb-12">
                         <button
                             onClick={() => setMode('track')}
-                            className={`flex-1 p-6 rounded-[2rem] border-2 transition-all text-left ${mode === 'track' ? 'border-blue-600 bg-blue-600/5' : 'border-slate-800 bg-slate-900/30'}`}
+                            className={`flex-1 p-6 rounded-[2rem] border transition-all text-left group ${mode === 'track' ? 'glass border-primary' : 'glass-card border-white/5 hover:border-white/20'}`}
                         >
-                            <span className="text-2xl mb-4 block">🎯</span>
-                            <h3 className="font-black uppercase tracking-tight text-lg">Standard Track</h3>
-                            <p className="text-xs text-slate-500 font-bold">Industry standard interview paths</p>
+                            <span className="text-3xl mb-4 block group-hover:scale-110 transition-transform origin-left">🎯</span>
+                            <h3 className="font-black uppercase tracking-tight text-lg text-white">Standard Track</h3>
+                            <p className="text-xs text-white/50 font-bold">Industry standard paths</p>
                         </button>
                         <button
                             onClick={() => setMode('resume')}
-                            className={`flex-1 p-6 rounded-[2rem] border-2 transition-all text-left ${mode === 'resume' ? 'border-blue-600 bg-blue-600/5' : 'border-slate-800 bg-slate-900/30'}`}
+                            className={`flex-1 p-6 rounded-[2rem] border transition-all text-left group ${mode === 'resume' ? 'glass border-primary' : 'glass-card border-white/5 hover:border-white/20'}`}
                         >
-                            <span className="text-2xl mb-4 block">📄</span>
-                            <h3 className="font-black uppercase tracking-tight text-lg">Resume Mode</h3>
-                            <p className="text-xs text-slate-500 font-bold">Personalized based on your CV</p>
+                            <span className="text-3xl mb-4 block group-hover:scale-110 transition-transform origin-left">📄</span>
+                            <h3 className="font-black uppercase tracking-tight text-lg text-white">Resume Mode</h3>
+                            <p className="text-xs text-white/50 font-bold">Personalized questions</p>
                         </button>
                     </div>
 
@@ -173,7 +181,7 @@ export default function NewInterview() {
                                                 key={role.id}
                                                 type="button"
                                                 onClick={() => setFormData({ ...formData, role: role.id })}
-                                                className={`p-6 rounded-2xl border-2 text-left transition-all ${formData.role === role.id ? 'border-blue-600 bg-blue-600/5 shadow-[0_0_30px_rgba(37,99,235,0.1)]' : 'border-slate-900 bg-slate-900/30 hover:border-slate-800'}`}
+                                                className={`p-6 rounded-2xl border text-left transition-all ${formData.role === role.id ? 'glass border-primary shadow-[0_0_30px_rgba(59,130,246,0.3)]' : 'glass-card border-white/5 hover:border-white/20'}`}
                                             >
                                                 <div className="flex justify-between items-start mb-4">
                                                     <span className="text-3xl">{role.icon}</span>
@@ -208,7 +216,7 @@ export default function NewInterview() {
                                                 setFormData(prev => ({ ...prev, useProfileResume: !prev.useProfileResume }));
                                                 setSelectedFile(null);
                                             }}
-                                            className={`p-8 rounded-[2rem] border-2 text-left transition-all ${formData.useProfileResume ? 'border-blue-600 bg-blue-600/5' : 'border-slate-900 bg-slate-900/30 disabled:opacity-30'}`}
+                                            className={`p-8 rounded-[2rem] border text-left transition-all ${formData.useProfileResume ? 'glass border-primary shadow-[0_0_30px_rgba(59,130,246,0.3)]' : 'glass-card border-white/5 hover:border-white/20 disabled:opacity-30'}`}
                                         >
                                             <span className="text-3xl mb-4 block">🤵</span>
                                             <p className="font-black uppercase tracking-tight">Active Profile CV</p>
@@ -219,7 +227,7 @@ export default function NewInterview() {
 
                                         <div
                                             onClick={() => fileInputRef.current?.click()}
-                                            className={`p-8 rounded-[2rem] border-2 text-left transition-all cursor-pointer ${selectedFile ? 'border-blue-600 bg-blue-600/5' : 'border-slate-900 bg-slate-900/30'}`}
+                                            className={`p-8 rounded-[2rem] border text-left transition-all cursor-pointer ${selectedFile ? 'glass border-primary' : 'glass-card border-white/5 hover:border-white/20'}`}
                                         >
                                             <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,.docx" onChange={handleFileChange} />
                                             <span className="text-3xl mb-4 block">☁️</span>
@@ -242,7 +250,7 @@ export default function NewInterview() {
                                             key={diff.id}
                                             type="button"
                                             onClick={() => setFormData({ ...formData, level: diff.id })}
-                                            className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center justify-between ${formData.level === diff.id ? 'border-blue-600 bg-blue-600/5' : 'border-slate-900 bg-transparent'}`}
+                                            className={`w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between ${formData.level === diff.id ? 'glass border-primary' : 'glass-card border-white/5 hover:border-white/20'}`}
                                         >
                                             <span className="text-xs font-black uppercase tracking-widest">{diff.label}</span>
                                             {formData.level === diff.id && <div className="w-2 h-2 bg-blue-600 rounded-full" />}
@@ -259,7 +267,7 @@ export default function NewInterview() {
                                             key={type.id}
                                             type="button"
                                             onClick={() => setFormData({ ...formData, interviewType: type.id })}
-                                            className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center justify-between ${formData.interviewType === type.id ? 'border-blue-600 bg-blue-600/5' : 'border-slate-900 bg-transparent'}`}
+                                            className={`w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between ${formData.interviewType === type.id ? 'glass border-primary' : 'glass-card border-white/5 hover:border-white/20'}`}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <span>{type.icon}</span>
@@ -277,7 +285,7 @@ export default function NewInterview() {
                             whileTap={{ scale: 0.99 }}
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-[0.2em] text-xs py-6 rounded-2xl transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50"
+                            className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white font-black uppercase tracking-[0.2em] text-xs py-6 rounded-2xl transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] disabled:opacity-50"
                         >
                             {isLoading ? 'Engineering Session...' : 'Launch Interview'}
                         </motion.button>

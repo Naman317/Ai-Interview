@@ -104,103 +104,233 @@ class ProblemResponse(BaseModel):
     testCases: list[dict]
     constraints: list[str]
 
-# Mock data for when Ollama is not available - NOW WITH REALISTIC INTERVIEW QUESTIONS
+# Mock data for when Ollama is not available - NOW WITH REALISTIC & CV-AWARE INTERVIEW QUESTIONS
+# These include variations that can be personalized based on resume
 MOCK_QUESTIONS = {
     "MERN Stack Developer": {
         "Junior": [
-            "Tell me about a project where you built a React component. How did you structure it and what challenges did you face?",
-            "Explain the difference between state and props in React. Can you give a real example from your projects?",
-            "What's your experience with Node.js backend development? Walk me through how you built an API endpoint.",
-            "How do you handle asynchronous operations in JavaScript? Give me an example from your work.",
-            "Describe your experience with MongoDB. How would you design a data schema for a blog application?"
+            "Walk me through the last web application you built end-to-end. What was the problem you were solving and how did you structure your code?",
+            "Tell me about a time when you had to troubleshoot a tricky bug. What was it, how did you identify the root cause, and what did you learn?",
+            "Describe your experience with React. What's the most complex component you've built and what challenges did you run into?",
+            "Walk me through how you would build a feature from scratch - from design to deployment. What would your process be?",
+            "Tell me about your experience with asynchronous JavaScript. Give me a real example where you had to handle multiple async operations.",
+            "How do you approach performance when building React applications? Tell me about a time you had to optimize something.",
+            "Tell me about your experience with databases. How would you design a schema for a real product you know?",
+            "Describe a time when you had to learn a new technology or framework quickly. How did you go about it?"
         ],
         "Mid-Level": [
-            "Tell me about a time when you had to optimize a React component's performance. What tools did you use and what was the outcome?",
-            "How would you design a system to handle real-time notifications using Node.js and WebSockets? What trade-offs would you consider?",
-            "Describe your approach to error handling in a full-stack application. Walk through your strategy from frontend to database.",
-            "Have you dealt with database indexing or query optimization in MongoDB? Tell me about a specific scenario.",
-            "How do you approach testing in a MERN stack? What's your experience with unit, integration, and end-to-end testing?",
-            "What's the most complex feature you've built with React? How did you manage state?",
-            "Explain how you would implement authentication in a MERN app. What security considerations matter most?"
+            "Describe a production issue you've encountered. Walk me through how you discovered it, diagnosed it, and what you did to fix it and prevent it in the future.",
+            "Tell me about a time when you had to make a trade-off decision between different technical approaches. What was the context and how did you decide?",
+            "How do you approach debugging complex state management issues in React? Tell me about a specific time you had to solve something like this.",
+            "Walk me through your approach to testing. What's your testing strategy and how do you decide what to test at each level?",
+            "Tell me about a time you had to optimize a slow endpoint or query. What was the bottleneck and how did you improve performance?",
+            "Describe your experience with code reviews. What do you typically look for and tell me about a time you caught something important.",
+            "How would you design the architecture for a feature that needs to handle high concurrent users? What would you consider?",
+            "Tell me about your experience scaling a system you built. What were the pain points and how did you address them?",
+            "Walk me through how you would approach adding real-time capabilities to an application. What are the trade-offs?"
         ],
         "Senior": [
-            "Design a real-time collaborative document editor using MERN stack. How would you handle concurrent users editing the same document?",
-            "Tell me about an architectural decision you made that you later regretted. What would you do differently?",
-            "How would you scale a MERN application to handle millions of concurrent users? Walk me through your approach.",
-            "Describe your experience with microservices. How have you transitioned from monolithic to microservice architecture?",
-            "What's your approach to database schema evolution and migrations in a production system?",
-            "Tell me about a time you had to mentor a junior developer on React best practices. What was most important to teach them?",
-            "How do you approach technical debt? When do you decide it's time to refactor vs. moving forward with new features?",
-            "Describe your experience with deployment and CI/CD pipelines. How do you ensure reliability in production?"
+            "Design a system from scratch that needs to handle 10 million daily active users. Walk me through your architecture decisions and trade-offs.",
+            "Tell me about a major refactoring you led. What was broken, how did you plan it, and how did you manage the risk?",
+            "Describe your approach to system design. What principles do you follow and how do you balance consistency, availability, and partition tolerance?",
+            "Tell me about your experience with distributed systems. What are the hardest problems you've solved and what did you learn?",
+            "How do you think about technical debt? Give me a real example where you decided to pay it down and what the process looked like.",
+            "Describe your philosophy on mentoring engineers. Tell me about a junior engineer you helped grow and how you approached it.",
+            "Walk me through how you'd approach migrating a monolithic system to microservices. What would be your strategy?",
+            "Tell me about a time when you had to make a difficult architectural decision under uncertainty. How did you gather information and make the decision?",
+            "How do you think about system reliability and observability? Tell me about how you'd instrument a complex system."
         ]
     },
     "Frontend Developer": {
         "Junior": [
-            "Tell me about the last website you built. What was the most challenging part of implementing the UI?",
-            "How do you approach responsive design? Walk me through your process for making sites work on mobile, tablet, and desktop.",
-            "What's your experience with CSS? Can you explain how flexbox or grid works?",
-            "Describe a time when you debugged a tricky frontend issue. What was the problem and how did you solve it?",
-            "What's your understanding of the DOM? How would you manipulate it with JavaScript?"
+            "Tell me about a website or web application you built that you're proud of. Walk me through the problem you were solving and how you approached it.",
+            "Tell me about your first experience with a frontend framework. What was challenging and how did you overcome it?",
+            "Describe a time when you had to debug something that was broken. What was the issue and how did you figure out where to look?",
+            "Walk me through how you would approach building a responsive design from scratch. What's your process?",
+            "Tell me about your experience with CSS. What's the trickiest CSS problem you've solved?",
+            "How do you stay up to date with frontend technologies? Tell me about something new you learned recently.",
+            "Describe your experience with browser developer tools. How do you use them in your daily workflow?",
+            "Tell me about a time you had to integrate with an external API. How did you handle it?"
         ],
         "Mid-Level": [
-            "Tell me about your experience with modern frontend frameworks. Why did you choose the ones you work with?",
-            "How do you approach performance optimization in frontend applications? What metrics do you care about?",
-            "Describe the most complex component you've built. How did you handle state management and prop drilling?",
-            "What's your experience with accessibility (a11y)? How do you ensure your UIs are accessible?",
-            "Tell me about your approach to testing frontend code. What tools do you prefer and why?"
+            "Tell me about the most complex interactive feature you've built. How did you approach the design and implementation?",
+            "Describe a performance issue you discovered in a frontend application. How did you identify it and what did you do to fix it?",
+            "Walk me through your approach to building accessible interfaces. Tell me about a time you had to fix accessibility issues.",
+            "Tell me about your experience with state management. What problems have you solved with it and what trade-offs did you encounter?",
+            "How do you approach testing frontend code? Walk me through your testing strategy.",
+            "Describe a time when you had to refactor legacy code. What was wrong and how did you improve it?",
+            "Tell me about your experience with performance optimization. What metrics matter and how do you measure them?",
+            "Walk me through how you would structure a large-scale frontend application. What are the key considerations?"
         ],
         "Senior": [
-            "Design a design system from scratch. How would you structure components and ensure consistency across products?",
-            "Tell me about your experience at scale. How have you optimized performance when dealing with millions of users?",
-            "How do you approach technical leadership on a frontend team? Describe your mentoring philosophy.",
-            "What's your vision for the future of frontend development? What technologies excite you?",
-            "Describe a complex feature you built that required cross-team coordination. How did you manage stakeholder expectations?"
+            "Design a frontend architecture for a highly interactive application with millions of users. What would you prioritize and why?",
+            "Tell me about your experience building and maintaining component libraries. What patterns have worked well?",
+            "Describe your philosophy on frontend performance. How do you approach optimization and measurement?",
+            "Tell me about a time you had to lead a major frontend refactor. How did you plan it and manage the risks?",
+            "Walk me through your approach to frontend security. What are the main vectors you think about?",
+            "How do you think about accessibility? Tell me about your approach to building inclusive experiences at scale.",
+            "Describe your experience with advanced state management patterns. What have you learned about scaling frontend state?",
+            "Tell me about your approach to mentoring junior frontend engineers. What do you focus on teaching them?"
         ]
     },
     "Full Stack Developer": {
         "Junior": [
-            "Walk me through the last full-stack project you built, from frontend to database. What was your architecture?",
-            "How do you approach debugging issues in a full-stack application? What's your process?",
-            "Tell me about your experience with databases. How would you design a schema for an e-commerce site?",
-            "Describe how you built an API. What did you consider for performance and security?",
-            "What tools do you use for version control and deployment? Walk me through your workflow."
+            "Tell me about the first full-stack application you built. Walk me through the architecture and what you learned.",
+            "Describe a feature you built end-to-end from backend to frontend. How did you approach it and what was challenging?",
+            "Tell me about your first experience with databases. How did you approach schema design?",
+            "Walk me through your experience deploying an application. What was the process and what went wrong?",
+            "Tell me about a time you had to debug an issue that spanned both frontend and backend. How did you approach it?",
+            "Describe your experience with APIs. How did you think about API design when building something from scratch?",
+            "Tell me about the tools and services you used in your last project. Why did you choose them?",
+            "Walk me through your experience with version control. How do you organize your workflow?"
         ],
         "Mid-Level": [
-            "Tell me about a production incident you dealt with. How did you diagnose and fix it?",
-            "How do you approach API design? What makes a good REST API?",
-            "Describe your experience with database optimization. When would you use caching vs. query optimization?",
-            "Tell me about your approach to security in a full-stack application. What are your biggest concerns?",
-            "How do you balance technical debt with shipping new features? Give me a real example."
+            "Tell me about a production issue you encountered. How did you diagnose it, what was the root cause, and how did you fix it?",
+            "Walk me through how you would design an API for a real feature. What would you consider?",
+            "Describe your approach to database design. Tell me about a time you had to optimize queries or restructure a schema.",
+            "Tell me about your experience with authentication and authorization. How have you implemented these in real applications?",
+            "Walk me through your approach to testing across the full stack. What's your strategy?",
+            "Tell me about your experience with deployment and CI/CD. How do you ensure reliability in production?",
+            "Describe a time when you had to scale a system you built. What were the bottlenecks and how did you address them?",
+            "Tell me about your approach to code review. What do you look for and how do you provide feedback?"
         ],
         "Senior": [
-            "Design a system that processes millions of requests per day. Walk me through your architecture decisions.",
+            "Design a system that can handle 100 million requests per day. Walk me through your end-to-end architecture and trade-offs.",
             "Tell me about your philosophy on system design. What principles guide your architectural decisions?",
-            "How do you handle scaling challenges? Describe a complex scaling problem you've solved.",
-            "What's your approach to building teams and mentoring engineers? How do you foster a strong engineering culture?",
-            "Tell me about a time you simplified a complex system. What was the impact?"
+            "Describe a major technical initiative you led. How did you plan it, manage the risks, and ensure success?",
+            "Tell me about your experience transitioning from a monolith to microservices. What were the lessons?",
+            "Walk me through how you think about reliability and observability. How would you instrument a complex system?",
+            "Describe your approach to technical leadership. How do you make architectural decisions and build consensus?",
+            "Tell me about your experience building high-performing teams. How do you foster technical excellence?",
+            "Walk me through a time you had to make a difficult technical decision under uncertainty. How did you approach it?"
         ]
     },
     "DevOps Engineer": {
         "Junior": [
-            "Tell me about your experience with Docker and containerization. Walk me through how you'd containerize an application.",
-            "What's your experience with CI/CD pipelines? Describe a pipeline you've built or worked with.",
-            "How do you approach infrastructure as code? What tools have you used?",
-            "Tell me about your experience with cloud platforms. Which one do you know best and why?",
-            "Describe how you'd troubleshoot a failing deployment. What's your process?"
+            "Tell me about your hands-on experience with containerization. Walk me through how you would approach containerizing an application.",
+            "Describe a CI/CD pipeline you built or worked with. What does it do and why was it set up that way?",
+            "Tell me about your experience with infrastructure as code. What tools have you used and what problems did you solve?",
+            "Walk me through your experience with Linux. What are the most important concepts you've learned?",
+            "Tell me about a deployment that went wrong and what you learned from it.",
+            "Describe your experience with monitoring and alerting. How do you know when something is wrong?",
+            "Tell me about your experience with version control for infrastructure. How do you manage changes?",
+            "Walk me through your experience with cloud platforms. Which one have you used most and how?"
         ],
         "Mid-Level": [
-            "Design a CI/CD pipeline for a microservices application with thousands of deployments per day.",
-            "Tell me about monitoring and logging in your systems. How do you ensure visibility into production?",
-            "Describe your approach to disaster recovery and high availability. What RTO/RPO targets do you typically aim for?",
-            "How do you handle infrastructure scaling? Tell me about a time you had to scale rapidly.",
-            "What's your experience with Kubernetes? How do you manage resource allocation and orchestration?"
+            "Design a CI/CD pipeline for a team shipping features daily. What would you include and why?",
+            "Tell me about your approach to infrastructure monitoring and observability. What metrics matter?",
+            "Describe a time when infrastructure scaling issues affected your deployment. How did you solve it?",
+            "Walk me through your experience with Kubernetes or container orchestration. What have you learned?",
+            "Tell me about your approach to disaster recovery and high availability. What have you actually implemented?",
+            "Describe your experience with security in infrastructure. What are your main concerns?",
+            "Tell me about infrastructure cost optimization. What strategies have worked?",
+            "Walk me through how you would handle a production incident from an infrastructure perspective."
         ],
         "Senior": [
-            "Design a cloud infrastructure for a startup expecting to grow 10x in the next year. What decisions would you make?",
-            "Tell me about your experience with security in DevOps. How do you balance security and development velocity?",
-            "Describe your approach to cost optimization in the cloud. What strategies have you used?",
-            "How do you build DevOps culture in an organization? Tell me about your approach to empowering teams.",
-            "What's your vision for the future of infrastructure? How would you prepare for emerging technologies?"
+            "Design infrastructure for a company growing from 10 to 1000 engineers. What would you prioritize?",
+            "Tell me about your philosophy on infrastructure as your platform. How do you empower teams?",
+            "Describe your experience scaling infrastructure through major growth. What were the bottlenecks?",
+            "Walk me through your approach to infrastructure cost optimization at scale.",
+            "Tell me about a major infrastructure initiative you led. How did you plan and execute it?",
+            "Describe your experience with service mesh or other advanced infrastructure patterns.",
+            "Tell me about your approach to building reliable systems. How do you think about redundancy and failover?",
+            "Walk me through your vision for infrastructure and DevOps in the future."
+        ]
+    },
+    "Backend Developer": {
+        "Junior": [
+            "Tell me about the first backend service you built. Walk me through the architecture and what you learned.",
+            "Describe a time when you had to optimize a slow database query. How did you identify the issue and what did you do?",
+            "Tell me about your experience with REST APIs. How would you design an endpoint from scratch?",
+            "Walk me through your experience with databases. Why did you choose the technologies you used?",
+            "Tell me about a time when you had to debug a production issue. What was the problem and how did you solve it?",
+            "Describe your experience with authentication and authorization. How have you implemented these?",
+            "Tell me about your approach to testing backend code. What types of tests do you write and why?",
+            "Walk me through a time when you had to integrate with an external service or API."
+        ],
+        "Mid-Level": [
+            "Describe a production incident you caused or discovered. Walk me through how you debugged it, what you learned, and how you prevented it.",
+            "Tell me about your experience designing APIs. How do you make decisions about endpoints, parameters, and response formats?",
+            "Walk me through how you would architect a system that needs to process 1 million transactions per day reliably.",
+            "Describe your experience with database optimization. Tell me about a time you had to scale a database or redesign a schema.",
+            "Tell me about your approach to error handling and logging. How do you make systems observable?",
+            "Describe a time when you had to refactor legacy code. What was wrong and how did you improve it?",
+            "Tell me about your experience with caching strategies. How do you decide when and where to cache?",
+            "Walk me through how you handle asynchronous operations and background jobs in your systems."
+        ],
+        "Senior": [
+            "Design a backend system from scratch that handles 100 million requests daily with sub-100ms latency. Walk me through your architecture decisions.",
+            "Tell me about a major refactoring or architectural change you led. How did you plan it, manage risks, and ensure success?",
+            "Describe your philosophy on system design. What principles guide your architectural decisions?",
+            "Tell me about your experience with microservices. When would you use them and what are the trade-offs?",
+            "Walk me through how you think about reliability and failure handling. How do you build resilient systems?",
+            "Describe your experience leading technical design discussions. How do you build consensus on architectural decisions?",
+            "Tell me about your approach to designing for scale. What are the bottlenecks you think about early?",
+            "Walk me through a time you had to make a difficult technical decision under uncertainty and resource constraints."
+        ]
+    },
+    "Data Scientist": {
+        "Junior": [
+            "Tell me about your first machine learning project. What problem were you solving and how did you approach it?",
+            "Walk me through your experience with data cleaning and preprocessing. What's the messiest dataset you've worked with?",
+            "Describe your experience with basic ML algorithms. When would you use linear regression vs classification?",
+            "Tell me about a time when your model didn't perform well. How did you debug it and what did you try?",
+            "Walk me through your experience with Python and data science libraries like pandas and scikit-learn.",
+            "Describe how you would approach feature engineering for a new problem. What's your process?",
+            "Tell me about your experience with data visualization. How do you communicate insights to non-technical stakeholders?",
+            "Walk me through your experience with train/test splits and cross-validation. Why do these matter?"
+        ],
+        "Mid-Level": [
+            "Describe a machine learning system you built end-to-end. Walk me through data collection, model training, and deployment.",
+            "Tell me about a time when you had to handle imbalanced data. What techniques did you use and why?",
+            "Walk me through your experience with hyperparameter tuning. How do you approach optimization?",
+            "Describe your experience with deep learning frameworks. When would you use neural networks vs traditional ML?",
+            "Tell me about a time you had to explain a complex model to business stakeholders. How did you approach it?",
+            "Walk me through your experience with A/B testing and experiment design. How do you measure model impact?",
+            "Describe your approach to handling missing data. What strategies have worked in production?",
+            "Tell me about your experience with model evaluation metrics. How do you choose which metrics matter for your problem?"
+        ],
+        "Senior": [
+            "Design an end-to-end ML system from data collection through production for a company with millions of users. What are your considerations?",
+            "Tell me about your philosophy on building ML systems. How do you balance complexity with interpretability and maintainability?",
+            "Describe a time you led a major ML initiative. How did you set objectives, manage stakeholders, and measure success?",
+            "Walk me through your experience with MLOps and model governance. How do you ensure models stay healthy in production?",
+            "Tell me about your approach to building interpretable and fair ML systems. What are your concerns?",
+            "Describe your experience with recommender systems or complex ML architectures. What are the unique challenges?",
+            "Tell me about a time when you had to rebuild a model from scratch or migrate to new approaches. How did you manage that transition?",
+            "Walk me through your vision for data science in your organization. How do you build scaling practices and teams?"
+        ]
+    },
+    "QA Engineer": {
+        "Junior": [
+            "Tell me about your first project testing software. What did you test and what testing techniques did you use?",
+            "Walk me through your experience writing automated tests. What tools have you used and why?",
+            "Describe a bug you found that was really interesting or tricky to debug. How did you approach finding it?",
+            "Tell me about your experience with different testing types - unit, integration, end-to-end. How are they different?",
+            "Walk me through your approach to testing a new feature. What would you test and in what order?",
+            "Describe your experience with test data management. How do you handle test environments and data?",
+            "Tell me about your experience with CI/CD pipelines. How do tests fit into the deployment process?",
+            "Walk me through a time when you had to test something you didn't fully understand. How did you approach it?"
+        ],
+        "Mid-Level": [
+            "Describe a complex feature you tested end-to-end. Walk me through your test strategy and what edge cases you considered.",
+            "Tell me about your approach to test automation. How do you decide what to automate vs test manually?",
+            "Walk me through your experience with performance testing. How do you identify and debug performance regressions?",
+            "Describe your experience with different testing frameworks. What are the trade-offs between different tools?",
+            "Tell me about a time when you discovered a production bug. How did you approach reproducing and escalating it?",
+            "Walk me through your approach to testing APIs. What aspects are most important to test?",
+            "Describe your experience with test reporting and metrics. How do you measure testing effectiveness?",
+            "Tell me about your approach to testing in an agile environment with rapid releases."
+        ],
+        "Senior": [
+            "Design a comprehensive testing strategy for a complex system with millions of users. What would you prioritize?",
+            "Tell me about your philosophy on quality and testing. How do you balance speed and quality?",
+            "Describe a major quality initiative you led. How did you improve testing practices or reduce defects?",
+            "Walk me through your experience with advanced testing concepts like chaos engineering or mutation testing.",
+            "Tell me about your approach to building test automation at scale. What are the challenges?",
+            "Describe your experience working with developers to improve code quality and testability.",
+            "Tell me about your approach to testing in different environments - dev, staging, production.",
+            "Walk me through your vision for quality engineering in organizations. How do you build quality culture?"
         ]
     }
 }
@@ -210,161 +340,278 @@ async def root():
     return {"message":"Hello from AI Interviewer Microservice !","model":OLLAMA_MODEL_NAME}
 
 
+def parse_cv_for_question_generation(resume_context: Optional[str], resume_skills: Optional[list[str]], resume_experience_years: Optional[int]) -> dict:
+    """
+    Parse CV data into structured format for targeted question generation
+    Returns: dict with extracted CV information for question personalization
+    """
+    cv_data = {
+        "has_resume": bool(resume_context or resume_skills),
+        "skills": resume_skills or [],
+        "experience_years": resume_experience_years or 0,
+        "background": resume_context or "",
+        "primary_skills": (resume_skills[:5] if resume_skills else []) or [],
+        "secondary_skills": (resume_skills[5:] if resume_skills and len(resume_skills) > 5 else []) or [],
+    }
+    return cv_data
+
+
+def generate_cv_specific_prompts(cv_data: dict, role: str, level: str) -> tuple:
+    """
+    Generate targeted prompt sections based on actual CV content
+    Returns: (cv_focused_instruction, skill_specific_instruction)
+    """
+    cv_focused = ""
+    skill_instruction = ""
+    
+    if cv_data["has_resume"]:
+        if cv_data["primary_skills"]:
+            skills_str = ", ".join(cv_data["primary_skills"])
+            cv_focused += f"\nCANDIDATE'S KEY SKILLS: {skills_str}\n"
+            skill_instruction += (
+                f"SKILL-SPECIFIC QUESTIONS (HIGH PRIORITY):\n"
+                f"- Ask SPECIFIC questions about: {skills_str}\n"
+                f"- These should be 50% of your questions\n"
+                f"- Ask: 'Tell me about your experience with [specific skill]'\n"
+                f"- Ask follow-ups that probe depth of knowledge in these areas\n"
+            )
+        
+        if cv_data["secondary_skills"]:
+            secondary_str = ", ".join(cv_data["secondary_skills"])
+            cv_focused += f"SECONDARY SKILLS: {secondary_str}\n"
+            skill_instruction += f"- Also ask about: {secondary_str} (lighter probing)\n"
+        
+        if cv_data["experience_years"]:
+            cv_focused += f"EXPERIENCE: {cv_data['experience_years']} years\n"
+            if cv_data["experience_years"] < 2:
+                skill_instruction += "- They're early career - focus on learning ability and fundamentals\n"
+            elif cv_data["experience_years"] < 5:
+                skill_instruction += "- They have some experience - ask about projects and decisions made\n"
+            else:
+                skill_instruction += "- They're experienced - ask about architecture, scaling, mentoring\n"
+        
+        if cv_data["background"]:
+            cv_focused += f"BACKGROUND: {cv_data['background'][:200]}...\n"
+            skill_instruction += (
+                f"- Reference their background/projects in questions\n"
+                f"- Ask about specific challenges they likely faced\n"
+            )
+    else:
+        skill_instruction += (
+            "WARNING: No resume provided - use more general questions\n"
+            "But ask about their experience to get context\n"
+        )
+    
+    return cv_focused, skill_instruction
+
+
+def create_cv_aware_system_prompt(interview_instruction: str, difficulty_instruction: str, cv_data: dict, role: str, level: str) -> str:
+    """
+    Create a comprehensive system prompt that balances role-specific and CV-specific questions
+    """
+    cv_focused_text, skill_specific_text = generate_cv_specific_prompts(cv_data, role, level)
+    
+    system_prompt = (
+        "You are an experienced technical interviewer conducting a real interview. "
+        "Your goal: Generate questions that assess the candidate fairly based on their actual experience.\n"
+        f"{interview_instruction}\n"
+        f"{difficulty_instruction}\n"
+        f"{cv_focused_text}\n"
+        f"{skill_specific_text}\n"
+        "QUESTION GENERATION STRATEGY:\n"
+        "1. IF RESUME PROVIDED:\n"
+        "   - 50% of questions should ask specifically about their skills/tech/background\n"
+        "   - 30% should be role-specific general questions\n"
+        "   - 20% situational/behavioral based on their level\n"
+        "2. IF NO RESUME:\n"
+        "   - Start with discovery questions ('Tell me about your background with...')\n"
+        "   - Then ask role-specific questions\n"
+        "3. FOR EACH SKILL/TECHNOLOGY ON RESUME:\n"
+        "   - Ask at least one specific question about it\n"
+        "   - Follow up on how they used it (not just 'explain what it is')\n"
+        "   - Ask about challenges encountered\n"
+        "4. QUESTION TYPES TO MIX:\n"
+        "   - Experience-based: 'Tell me about [specific tech from their resume]'\n"
+        "   - Application-based: 'How have you used [skill] to solve...'\n"
+        "   - Decision-based: 'Why did you choose [tech] over [alternative]...'\n"
+        "   - Challenge-based: 'What's the hardest problem you've solved with [skill]...'\n"
+        "   - Growth-based: 'How did you learn [skill]...'\n"
+        "5. AVOID:\n"
+        "   - Generic definition questions unless they don't know the tech\n"
+        "   - Questions about technologies NOT on their resume (unless probing gaps)\n"
+        "   - 'Explain X' questions - instead ask about their experience with X\n"
+        "\nQUESTION QUALITY STANDARDS:\n"
+        "- Each question personalizes to their actual CV when possible\n"
+        "- Questions reveal depth of real-world experience\n"
+        "- Conversational tone, as if spoken by interviewer\n"
+        "- Progressive difficulty from comfortable (their skills) to challenging (advanced)\n"
+        "\nOUTPUT FORMAT:\n"
+        "1. Output EXACTLY ONE question per line\n"
+        "2. NO numbering, NO explanations, NO extra text\n"
+        "3. Each question should mention specific skills/tech from their CV\n"
+        "4. Questions are conversational and immediately ready to ask"
+    )
+    
+    return system_prompt
+
+
 @app.post("/generate-questions",response_model=QuestionResponse)
 async def generate_questions(request:QuestionResquest):
     try:
-        # If Ollama is not available, use mock questions
+        # Parse CV data for personalization
+        cv_data = parse_cv_for_question_generation(
+            request.resume_context,
+            request.resume_skills,
+            request.resume_experience_years
+        )
+        
+        # If Ollama is not available, use market questions with CV consideration
         if not OLLAMA_AVAILABLE:
             role = request.role if request.role in MOCK_QUESTIONS else "MERN Stack Developer"
             level = request.level if request.level in MOCK_QUESTIONS.get(role, {}) else "Junior"
             questions = MOCK_QUESTIONS.get(role, {}).get(level, [])[:request.count]
-            return QuestionResponse(questions=questions, model_used="mock-questions")
+            
+            # Try to personalize mock questions if CV data available
+            if cv_data["has_resume"] and cv_data["primary_skills"]:
+                personalized = []
+                for skill in cv_data["primary_skills"][:2]:
+                    personalized.append(f"Tell me about your experience with {skill}. How have you used it in production?")
+                if cv_data["experience_years"]:
+                    personalized.append(f"With {cv_data['experience_years']} years of experience, describe the most complex project you've worked on.")
+                questions = personalized + questions[:request.count - len(personalized)]
+            
+            return QuestionResponse(questions=questions[:request.count], model_used="mock-questions")
         
-        if request.interview_type=="video":
-            interview_focus=(
-                "behavioral_and_communication"
+        # Interview type specific instructions
+        if request.interview_type == "video":
+            interview_focus = "behavioral_and_communication"
+            interview_instruction = (
+                "Video interviews assess communication, presence, and thought process clarity. "
+                "Ask questions that reveal how they handle pressure and communicate ideas. "
+                "Mix technical questions with behavioral questions (STAR method compatible)."
             )
-            interview_instruction=(
-                "Videos allow assessment of communication skills, presence, and authenticity. "
-                "Mix behavioral questions (STAR method answers) with technical questions. "
-                "Include questions that reveal how they communicate under pressure."
-                " Sometime Mix algorithmic problems with system design conceptual questions. "
-                "Include questions about edge cases and optimization."
-                "Include follow-up questions that probe deeper into their knowledge."
-            )
-        elif request.interview_type=="voice":
-            interview_focus=(
-                "technical_and_behavioral"
-            )
-            interview_instruction=(
+        elif request.interview_type == "voice":
+            interview_focus = "technical_and_behavioral"
+            interview_instruction = (
                 "Voice interviews focus on technical depth and problem-solving communication. "
-                "Ask progressively harder technical questions. "
-                " Sometime Mix algorithmic problems with system design conceptual questions. "
-                "Include questions about edge cases and optimization."
-                "Include follow-up questions that probe deeper into their knowledge."
+                "Ask progressively harder technical questions about their specific experience. "
+                "Probe into actual decisions they've made and challenges they've overcome."
             )
         else:
-            interview_focus=(
-                "coding_and_technical"
-            )
-            interview_instruction=(
-                "Coding interviews assess algorithm knowledge, problem-solving approach, and code quality. "
-                "Mix algorithmic problems with system design conceptual questions. "
-                "Include questions about edge cases and optimization."
+            interview_focus = "coding_and_technical"
+            interview_instruction = (
+                "Coding interviews assess algorithm knowledge, code quality, and problem-solving approach. "
+                "Ask about real projects and specific technical implementations. "
+                "Mix problem-solving with architectural decision questions."
             )
 
-        # Build resume-aware context
-        resume_context = ""
-        resume_context_line = ""
-        if request.resume_context:
-            resume_context += f"Candidate Background: {request.resume_context}\n"
-            resume_context_line += resume_context
-        if request.resume_skills:
-            top_skills = request.resume_skills[:8]
-            resume_context += f"Key Skills: {', '.join(top_skills)}\n"
-            resume_context_line += f"Key Skills: {', '.join(top_skills)}\n"
-        if request.resume_experience_years:
-            experience_text = f"{request.resume_experience_years} years of experience"
-            resume_context += f"Experience Level: {experience_text}\n"
-            resume_context_line += f"Experience Level: {experience_text}\n"
-        
-        # Generate experience-level specific guidance
+        # Experience level specific instructions
         if request.level.lower() == "junior":
             difficulty_instruction = (
-                "DIFFICULTY LEVEL - JUNIOR:\n"
-                "- Ask foundational and practical questions\n"
-                "- Include 'real project' scenarios to understand their experience with actual code\n"
-                "- Ask about specific tech stacks they list on resume\n"
-                "- Include 1-2 coding fundamentals questions\n"
-                "- Assess learning ability and growth mindset"
+                "JUNIOR LEVEL:\n"
+                "- Ask about specific projects they've completed\n"
+                "- Assess foundational understanding and learning ability\n"
+                "- Ask 'How would you learn...' for unfamiliar technologies\n"
+                "- Mix hands-on (`How did you build...`) with conceptual questions\n"
+                "- Look for problem-solving approach, not just right answer"
             )
-        elif request.level.lower() == "mid-level" or request.level.lower() == "mid level":
+        elif request.level.lower() in ["mid-level", "mid level"]:
             difficulty_instruction = (
-                "DIFFICULTY LEVEL - MID-LEVEL:\n"
-                "- Mix foundational + advanced technical questions\n"
-                "- Ask about architectural decisions they've made\n"
-                "- Include system design concepts (scaling, caching, databases)\n"
-                "- Ask about trade-offs and optimization strategies\n"
-                "- Assess leadership skills and mentoring ability"
+                "MID-LEVEL:\n"
+                "- Ask about architectural decisions and tradeoffs\n"
+                "- Probe into system design and scalability\n"
+                "- Ask about code reviews, mentoring, and technical leadership\n"
+                "- Questions about handling ambiguity and unclear requirements\n"
+                "- Mix technical depth with team/project management"
             )
         else:  # Senior
             difficulty_instruction = (
-                "DIFFICULTY LEVEL - SENIOR:\n"
+                "SENIOR LEVEL:\n"
                 "- Focus on complex system design and architectural decisions\n"
-                "- Ask about past challenges and how they handled technical debt\n"
-                "- Questions about scaling systems to millions of users\n"
-                "- Leadership, mentoring, and technical strategy questions\n"
-                "- Industry trends and forward-thinking questions\n"
-                "- Assess judgment, experience, and strategic thinking"
+                "- Ask about scaling challenges and technical debt management\n"
+                "- Questions on mentoring, code reviews, and engineering culture\n"
+                "- Probe strategy, vision, and long-term thinking\n"
+                "- Ask about failures, learnings, and how they'd do things differently"
             )
-
-        system_prompt=(
-            "You are an experienced technical interviewer for a top-tier tech company. "
-            "Your goal: Generate interview questions that feel REAL and like what actual interviewers would ask. "
-            f"\n{interview_instruction}\n"
-            f"\n{difficulty_instruction}\n"
-            f"\nQUESTION GENERATION GUIDELINES:\n"
-            "1. Questions should sound natural - as if spoken by a human interviewer\n"
-            "2. Avoid generic questions - be specific to the role and their background\n"
-            "3. Mix question types:\n"
-            "   - Behavioral: 'Tell me about a time when...', 'How do you...', 'Describe your experience with...'\n"
-            "   - Technical: Problem-solving, architecture, specific technology questions\n"
-            "   - Situational: 'How would you handle...', 'What if...'\n"
-            "   - Real Project: Ask about specific projects from their resume\n"
-            "4. Progress from easier to harder questions naturally\n"
-            "5. Include follow-up style questions that show interviewer engagement\n"
-            "6. Ask questions that reveal problem-solving process, not just answers\n"
-            "\nQUESTION QUALITY STANDARDS:\n"
-            "- Each question should be open-ended and thought-provoking\n"
-            "- Questions should encourage detailed answers (2-5 minute responses)\n"
-            "- Avoid yes/no questions\n"
-            "- Make questions specific enough to assess real skills\n"
-            "- Include depth - questions that can't be answered from Google\n"
-            f"\nRESUME CONTEXT:\n{resume_context_line}"
-            "IMPORTANT: Personalize questions based on their resume. If they mention React, ask about React specifically. "
-            "If they have 5+ years experience, ask senior-level questions.\n"
-            "\nOUTPUT FORMAT:\n"
-            "1. Output EXACTLY ONE question per line\n"
-            "2. NO numbering, NO explanations, NO extra text\n"
-            "3. Each question is complete and ready to ask\n"
-            "4. Questions feel natural and conversational"
+        
+        # CREATE CV-AWARE SYSTEM PROMPT
+        system_prompt = create_cv_aware_system_prompt(
+            interview_instruction,
+            difficulty_instruction,
+            cv_data,
+            request.role,
+            request.level
         )
-
-        user_prompt=(
+        
+        # BUILD USER PROMPT - WITH CV EMPHASIS
+        user_prompt = (
             f"Generate exactly {request.count} interview questions for a {request.level} level {request.role}.\n"
-            f"\nThese questions should:\n"
-            f"- Feel like a real interview (natural, conversational, engaging)\n"
-            f"- Assess both technical ability and soft skills\n"
-            f"- Progress from easier to more challenging\n"
-            f"- Be specific to {request.role} role\n"
-            f"- Be appropriate for {'video interview' if request.interview_type == 'video' else 'technical interview'}\n"
-            f"\nFormat: One question per line, no numbering. Ready to ask a candidate."
         )
+        
+        if cv_data["has_resume"]:
+            user_prompt += (
+                f"\nCRITICAL: They provided a resume.\n"
+                f"- 50% of questions MUST be about their specific skills/tech: {', '.join(cv_data['primary_skills'])}\n"
+                f"- Ask HOW they've used these skills, not just definitions\n"
+                f"- Reference their experience level ({cv_data['experience_years']} years)\n"
+                f"- Ask about specific challenges and decisions they made\n"
+            )
+        else:
+            user_prompt += (
+                f"\nNo resume provided - start with discovery questions to understand their background.\n"
+            )
+        
+        user_prompt += (
+            f"\nThese questions should:\n"
+            f"- Feel like a real interview (natural, specific, engaging)\n"
+            f"- Reference their actual experience/resume when available\n"
+            f"- Progress from comfortable to challenging\n"
+            f"- Mix question types: behavioral + technical + situational\n"
+            f"- Ask about real projects and decisions, not just definitions\n"
+            f"\nFormat: One question per line, no numbering, ready to ask."
+        )
+        
         try:
-            response=ollama.generate(
+            response = ollama.generate(
                 model=OLLAMA_MODEL_NAME,
                 prompt=user_prompt,
                 system=system_prompt,
                 stream=False,
-                options={"temperature":0.7, "top_p":0.9, "top_k":40}
+                options={"temperature": 0.7, "top_p": 0.9, "top_k": 40}
             )
         except Exception as e:
-            # If Ollama fails, fall back to mock questions
+            # If Ollama fails, fall back to mock questions with CV consideration
             print(f"Ollama generation failed: {e}")
             role = request.role if request.role in MOCK_QUESTIONS else "MERN Stack Developer"
             level = request.level if request.level in MOCK_QUESTIONS.get(role, {}) else "Junior"
             questions = MOCK_QUESTIONS.get(role, {}).get(level, [])[:request.count]
-            return QuestionResponse(questions=questions, model_used="mock-questions")
+            
+            # Personalize with CV if available
+            if cv_data["has_resume"] and cv_data["primary_skills"]:
+                personalized = []
+                for skill in cv_data["primary_skills"][:2]:
+                    personalized.append(f"Tell me about your experience with {skill}. How have you used it in production?")
+                if cv_data["experience_years"]:
+                    personalized.append(f"With {cv_data['experience_years']} years of experience, walk me through the most complex system you've built.")
+                questions = personalized + questions[:request.count - len(personalized)]
+            
+            return QuestionResponse(questions=questions[:request.count], model_used="mock-questions")
 
-        raw_text=response['response'].strip()
-        questions=[q.strip() for q in raw_text.split('\n') if q.strip()]
-        return QuestionResponse(questions=questions[:request.count],model_used=OLLAMA_MODEL_NAME)
+        raw_text = response['response'].strip()
+        questions = [q.strip() for q in raw_text.split('\n') if q.strip()]
+        
+        # If we got fewer questions than requested, fill with relevant mock questions
+        if len(questions) < request.count:
+            role = request.role if request.role in MOCK_QUESTIONS else "MERN Stack Developer"
+            level = request.level if request.level in MOCK_QUESTIONS.get(role, {}) else "Junior"
+            mock_questions = MOCK_QUESTIONS.get(role, {}).get(level, [])
+            questions.extend(mock_questions[:request.count - len(questions)])
+        
+        return QuestionResponse(questions=questions[:request.count], model_used=OLLAMA_MODEL_NAME)
 
     except Exception as e:
-        raise HTTPException(status_code=500,detail=str(e))
-    
-
-@app.post("/transcribe")
+        print(f"Error generating questions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 async def transcribe_audio(audioFile:UploadFile=File(...)):
     temp_audio_path = None
     try:
@@ -411,6 +658,50 @@ async def transcribe_audio(audioFile:UploadFile=File(...)):
 @app.post("/evaluate",response_model=EvaluationResponse)
 async def evaluate(request:EvaluationRequest):
     try:
+        def format_dict_field(field_val, default_val):
+            if not field_val:
+                return default_val
+            if isinstance(field_val, dict):
+                formatted = ""
+                for k, v in field_val.items():
+                    formatted += f"{str(k).capitalize()}: {str(v)}\n\n"
+                return formatted.strip()
+            return str(field_val).strip()
+
+        # Generate role-specific ideal answers
+        def get_ideal_answer(role: str, level: str) -> str:
+            role_guidance = {
+                "Backend Developer": {
+                    "Junior": "A good answer should describe a specific project, the technologies used, the architecture you designed, challenges you encountered, and how you overcame them. Include details about databases, APIs, scaling considerations, and what you learned.",
+                    "Mid-Level": "Excellent answer includes incident details (what broke, when discovered, root cause), your debugging methodology, how you fixed it, prevention measures implemented, and impact on the system. Shows production thinking and ownership.",
+                    "Senior": "Outstanding answer demonstrates system design thinking, trade-off analysis between consistency/availability, how you led the initiative, learnings from failures, and how you mentored others through the process. Shows strategic thinking."
+                },
+                "MERN Stack Developer": {
+                    "Junior": "Strong answer describes a specific web application you built, the problem it solved, the React components you created, how you handled state, performance optimization, and what challenges you overcame. Shows end-to-end thinking.",
+                    "Mid-Level": "Great answer includes production incidents, debugging complex state management issues, performance profiling and optimization, testing strategy (unit/integration/E2E), and decisions around technology choices.",
+                    "Senior": "Excellent answer shows system design for scale (10M DAU considerations), architecture decisions, monitoring/observability setup, technical leadership, how you mentored junior engineers, and lessons learned."
+                },
+                "Frontend Developer": {
+                    "Junior": "Good answer describes a website or app you built, the user problems you solved, how you structured components, CSS challenges, responsive design approach, and what you learned from the experience.",
+                    "Mid-Level": "Strong answer includes complex interactive features you built, performance optimization techniques, accessibility considerations, state management decisions, and how you tested across browsers/devices.",
+                    "Senior": "Outstanding answer covers frontend architecture for millions of users, component library design, performance monitoring in production, accessibility at scale, security considerations, and how you led frontend initiatives."
+                },
+                "Data Scientist": {
+                    "Junior": "Good answer describes your ML project, the problem you solved with data, data preprocessing steps, which algorithm you chose and why, how you evaluated the model, and what you learned.",
+                    "Mid-Level": "Strong answer includes end-to-end ML system, handling imbalanced data, hyperparameter tuning approach, A/B testing methodology, model evaluation metrics chosen, and how you communicated results to stakeholders.",
+                    "Senior": "Excellent answer demonstrates MLOps thinking, model governance, fairness and interpretability considerations, scaling ML systems, production monitoring, and how you led data science initiatives across teams."
+                },
+                "QA Engineer": {
+                    "Junior": "Good answer describes testing approach, testing types you used (unit/integration/E2E), how you identified a bug, steps to reproduce it, and how it was fixed. Shows testing methodology.",
+                    "Mid-Level": "Strong answer includes test automation strategy, performance testing experience, CI/CD integration, how you manage test data, complex scenarios tested, and trade-offs between manual and automated testing.",
+                    "Senior": "Outstanding answer demonstrates comprehensive testing strategy, test pyramid thinking, advanced testing (chaos/mutation), how you built quality culture, test automation at scale, and led quality initiatives."
+                }
+            }
+            
+            role_key = role if role in role_guidance else "Backend Developer"
+            level_key = level if level in role_guidance.get(role_key, {}) else "Junior"
+            return role_guidance.get(role_key, {}).get(level_key, "A comprehensive answer addressing all aspects of the question with specific examples and demonstrating deep understanding of the concepts.")
+        
         # If Ollama is not available, return mock evaluation
         if not OLLAMA_AVAILABLE:
             # Generate a mock evaluation based on answer length and content
@@ -420,14 +711,18 @@ async def evaluate(request:EvaluationRequest):
                     technicalScore=0,
                     confidenceScore=0,
                     aiFeedback="No answer provided. Please provide a verbal or code response.",
-                    idealAnswer="A complete answer should be provided addressing the question."
+                    idealAnswer=get_ideal_answer(request.role, request.level)
                 )
             else:
+                answer_length = len(answer_text.split())
+                # Better scoring based on answer length
+                tech_score = min(75, 40 + (answer_length // 20))
+                conf_score = min(80, 50 + (answer_length // 30))
                 return EvaluationResponse(
-                    technicalScore=65,
-                    confidenceScore=70,
-                    aiFeedback="Good attempt at answering the question. Try to provide more specific examples and edge case handling.",
-                    idealAnswer="The ideal answer would include clear explanation of the concept, relevant examples, and consideration of edge cases."
+                    technicalScore=tech_score,
+                    confidenceScore=conf_score,
+                    aiFeedback="Your answer shows understanding of the topic. To improve: provide more specific examples from your actual experience, discuss trade-offs and decisions you made, and explain your thought process more clearly.",
+                    idealAnswer=get_ideal_answer(request.role, request.level)
                 )
         
         if request.question_type=="oral":
@@ -449,7 +744,7 @@ async def evaluate(request:EvaluationRequest):
         
         system_prompt=(
             "You are an experienced technical interviewer conducting a real interview. "
-            "Your job: Fairly evaluate a candidate's response based on what a real company would expect.\n\n"
+            "Your job: Fairly evaluate a candidate's response and provide a comprehensive ideal answer.\n\n"
             "EVALUATION CRITERIA:\n"
             "Technical Score (0-100): How well they answered - correctness, completeness, depth\n"
             "  - 90-100: Expert level, production-ready solution\n"
@@ -463,6 +758,14 @@ async def evaluate(request:EvaluationRequest):
             "  - Whether they seemed confident or uncertain\n"
             "  - Communication quality and professionalism\n\n"
             f"{assessment_instruction}\n\n"
+            "IDEAL ANSWER INSTRUCTIONS:\n"
+            "- Generate a DETAILED and SPECIFIC ideal answer (3-5 sentences minimum)\n"
+            "- Include key points that should have been covered\n"
+            "- For behavioral: What was the problem, how did they solve it, what was the outcome\n"
+            "- For technical: Explain the approach, key concepts, trade-offs, and best practices\n"
+            "- Make it learning-focused: show what a great answer looks like\n"
+            "- Be specific to the role, level, and exact question asked\n"
+            "- DO NOT say 'The ideal answer would...' - provide the actual ideal answer\n\n"
             "IMPORTANT: Give feedback as a real interviewer would:\n"
             "- Be specific about what was good and what needs improvement\n"
             "- Be fair and calibrated to their experience level\n"
@@ -482,8 +785,9 @@ async def evaluate(request:EvaluationRequest):
             f"CANDIDATE'S RESPONSE:\n"
             f"  Verbal Answer: {request.user_answer or '(No verbal answer)'}\n"
             f"  Code/Solution: {request.user_code or '(No code provided)'}\n\n"
-            f"Provide your evaluation as a fair interviewer would.\n"
-            f"Return only JSON with: technicalScore, confidenceScore, aiFeedback, idealAnswer"
+            f"Provide your evaluation with clear scores, feedback, and a detailed ideal answer.\n"
+            f"Return only JSON with: technicalScore, confidenceScore, aiFeedback, idealAnswer\n"
+            f"Remember: idealAnswer should be a specific, detailed answer showing what excellence looks like."
         )
         try:
             response=ollama.generate(
@@ -503,73 +807,50 @@ async def evaluate(request:EvaluationRequest):
                     technicalScore=0,
                     confidenceScore=0,
                     aiFeedback="No answer provided. Please provide a verbal or code response.",
-                    idealAnswer="A complete answer should be provided addressing the question."
+                    idealAnswer=get_ideal_answer(request.role, request.level)
                 )
             else:
+                answer_length = len(answer_text.split())
+                # Better scoring based on answer length
+                tech_score = min(75, 40 + (answer_length // 20))
+                conf_score = min(80, 50 + (answer_length // 30))
                 return EvaluationResponse(
-                    technicalScore=65,
-                    confidenceScore=70,
-                    aiFeedback="Good attempt at answering the question. Try to provide more specific examples and edge case handling.",
-                    idealAnswer="The ideal answer would include clear explanation of the concept, relevant examples, and consideration of edge cases."
+                    technicalScore=tech_score,
+                    confidenceScore=conf_score,
+                    aiFeedback="Your answer shows understanding of the topic. To improve: provide more specific examples from your actual experience, discuss trade-offs and decisions you made, and explain your thought process more clearly.",
+                    idealAnswer=get_ideal_answer(request.role, request.level)
                 )
         response_text=response['response'].strip()
         try:
             evaluation_data=json.loads(response_text)
-            # Clean and validate aiFeedback
-            if 'aiFeedback' in evaluation_data:
-                feedback = evaluation_data['aiFeedback']
-                if isinstance(feedback, dict):
-                    # If it's an empty dict, use default feedback
-                    if not feedback:
-                        evaluation_data['aiFeedback'] = "Your answer was not adequately detailed. Please provide more specific examples and explanations."
-                    else:
-                        evaluation_data['aiFeedback'] = json.dumps(feedback)
-                elif isinstance(feedback, str) and not feedback.strip():
-                    evaluation_data['aiFeedback'] = "Your answer was not adequately detailed. Please provide more specific examples and explanations."
-                else:
-                    evaluation_data['aiFeedback'] = str(feedback)
-            # Clean and validate idealAnswer
-            if 'idealAnswer' in evaluation_data:
-                answer = evaluation_data['idealAnswer']
-                if isinstance(answer, dict):
-                    if not answer:
-                        evaluation_data['idealAnswer'] = "A comprehensive answer should address all aspects of the question with examples and edge case considerations."
-                    else:
-                        evaluation_data['idealAnswer'] = json.dumps(answer)
-                elif isinstance(answer, str) and not answer.strip():
-                    evaluation_data['idealAnswer'] = "A comprehensive answer should address all aspects of the question with examples and edge case considerations."
-                else:
-                    evaluation_data['idealAnswer'] = str(answer)
+            
+            evaluation_data['aiFeedback'] = format_dict_field(
+                evaluation_data.get('aiFeedback'), 
+                "Your answer shows understanding. To improve: provide more specific examples from your actual experience, discuss trade-offs and decisions you made, and explain your thought process more clearly."
+            )
+            
+            evaluation_data['idealAnswer'] = format_dict_field(
+                evaluation_data.get('idealAnswer'),
+                get_ideal_answer(request.role, request.level)
+            )
+            
             return EvaluationResponse(**evaluation_data)
         except json.JSONDecodeError:
             import re
             fixed_text=re.sub(r'[\r\n\t]',' ',response_text)
             try:
                 evaluation_data=json.loads(fixed_text)
-                # Clean and validate aiFeedback
-                if 'aiFeedback' in evaluation_data:
-                    feedback = evaluation_data['aiFeedback']
-                    if isinstance(feedback, dict):
-                        if not feedback:
-                            evaluation_data['aiFeedback'] = "Your answer was not adequately detailed. Please provide more specific examples and explanations."
-                        else:
-                            evaluation_data['aiFeedback'] = json.dumps(feedback)
-                    elif isinstance(feedback, str) and not feedback.strip():
-                        evaluation_data['aiFeedback'] = "Your answer was not adequately detailed. Please provide more specific examples and explanations."
-                    else:
-                        evaluation_data['aiFeedback'] = str(feedback)
-                # Clean and validate idealAnswer
-                if 'idealAnswer' in evaluation_data:
-                    answer = evaluation_data['idealAnswer']
-                    if isinstance(answer, dict):
-                        if not answer:
-                            evaluation_data['idealAnswer'] = "A comprehensive answer should address all aspects of the question with examples and edge case considerations."
-                        else:
-                            evaluation_data['idealAnswer'] = json.dumps(answer)
-                    elif isinstance(answer, str) and not answer.strip():
-                        evaluation_data['idealAnswer'] = "A comprehensive answer should address all aspects of the question with examples and edge case considerations."
-                    else:
-                        evaluation_data['idealAnswer'] = str(answer)
+                
+                evaluation_data['aiFeedback'] = format_dict_field(
+                    evaluation_data.get('aiFeedback'), 
+                    "Your answer shows understanding. To improve: provide more specific examples from your actual experience, discuss trade-offs and decisions you made, and explain your thought process more clearly."
+                )
+                
+                evaluation_data['idealAnswer'] = format_dict_field(
+                    evaluation_data.get('idealAnswer'),
+                    get_ideal_answer(request.role, request.level)
+                )
+                
                 return EvaluationResponse(**evaluation_data)
             except Exception as parse_error:
                 print(f"Failed to parse evaluation response: {parse_error}. Raw: {response_text[:200]}")
@@ -577,12 +858,18 @@ async def evaluate(request:EvaluationRequest):
                     technicalScore=0,
                     confidenceScore=0,
                     aiFeedback="Your submission could not be properly evaluated. Please ensure you provided a complete answer.",
-                    idealAnswer="A comprehensive answer should address all aspects of the question with concrete examples."
+                    idealAnswer=get_ideal_answer(request.role, request.level)
                 )
 
     except Exception as e:
         print(f"Failed to generate response: {e}")
-        raise HTTPException(status_code=500,detail=str(e))
+        # Gracefully handle critical errors - ALWAYS return meaningful evaluation
+        return EvaluationResponse(
+            technicalScore=0,
+            confidenceScore=0,
+            aiFeedback="Your submission could not be fully evaluated due to a system issue. Your answer has been recorded. Key areas to improve: provide concrete examples from your experience, explain your decision-making process, discuss why you chose specific approaches, and mention any challenges you overcame.",
+            idealAnswer=get_ideal_answer(request.role, request.level)
+        )
 
 # Video Analysis Models
 from fastapi import Form
@@ -699,18 +986,32 @@ async def analyze_video(
         
         if OLLAMA_AVAILABLE:
             try:
+                def format_dict_field(field_val, default_val):
+                    if not field_val:
+                        return default_val
+                    if isinstance(field_val, dict):
+                        formatted = ""
+                        for k, v in field_val.items():
+                            formatted += f"{str(k).capitalize()}: {str(v)}\n\n"
+                        return formatted.strip()
+                    return str(field_val).strip()
+
                 system_prompt = (
-                    "You are an expert technical interviewer. Analyze the provided transcript of an interview answer. "
-                    "Rate technical accuracy and provide constructive feedback. "
+                    "You are an expert technical interviewer evaluating a candidate's video interview response. "
+                    "Review the provided transcript of their answer to the specific question asked.\n\n"
+                    "EVALUATION CRITERIA:\n"
+                    "1. Technical Score (0-100): Rate their technical accuracy and depth based on their role and experience level.\n"
+                    "2. AI Feedback: Provide comprehensive, constructive feedback. Highlight strengths and suggest specific areas for improvement, directly addressing their answer.\n\n"
                     "Respond ONLY with a JSON object. "
-                    "Required keys: 'technicalScore' (0-100), 'aiFeedback' (string). "
+                    "Required keys: 'technicalScore' (integer 0-100), 'aiFeedback' (string)."
                 )
 
                 user_prompt = (
                     f"Role: {role}\n"
                     f"Level: {level}\n"
                     f"Question: {question}\n"
-                    f"Transcript: {transcript}\n"
+                    f"Transcript: {transcript}\n\n"
+                    f"Evaluate this response fairly and provide a detailed analysis."
                 )
 
                 response = ollama.generate(
@@ -718,12 +1019,15 @@ async def analyze_video(
                     prompt=user_prompt,
                     system=system_prompt,
                     format="json",
-                    options={"temperature": 0.1}
+                    options={"temperature": 0.2}
                 )
                 
                 analysis_data = json.loads(response['response'].strip())
                 technical_score = analysis_data.get('technicalScore', 75)
-                ai_feedback = analysis_data.get('aiFeedback', ai_feedback)
+                
+                # Protect against dictionary returns
+                raw_feedback = analysis_data.get('aiFeedback')
+                ai_feedback = format_dict_field(raw_feedback, "Good response. Try to elaborate on technical specifics in the future.")
             except Exception as e:
                 print(f"Ollama analysis failed: {e}")
 

@@ -185,6 +185,11 @@ const submitAnswer = asyncHandler(async (req, res) => {
         const codeSubmission = code || null;
         const transcriptSubmission = transcript || null;
 
+        if (!audioFilePath && !codeSubmission && !transcriptSubmission) {
+            res.status(400);
+            throw new Error('Please provide an audio recording, transcript, or code submission.');
+        }
+
         // 1. Update status in DB
         question.isSubmitted = true;
         await session.save();
@@ -207,35 +212,36 @@ const submitAnswer = asyncHandler(async (req, res) => {
 
 
 const calculateOverallScore = async (sessionId) => {
-    const results = await Session.aggregate([
-        { $match: { _id: new mongoose.Types.ObjectId(sessionId) } },
-        { $unwind: '$questions' },
-        // REMOVED: { $match: { 'questions.isSubmitted': true } } 
-        // We now keep all questions to ensure they are part of the average.
-        {
-            $group: {
-                _id: '$_id',
-                // If a question is evaluated, use its score; otherwise, use 0.
-                avgTechnical: {
-                    $avg: { $cond: [{ $eq: ['$questions.isEvaluated', true] }, '$questions.technicalScore', 0] }
-                },
-                avgConfidence: {
-                    $avg: { $cond: [{ $eq: ['$questions.isEvaluated', true] }, '$questions.confidenceScore', 0] }
-                }
-            }
-        },
-        {
-            $project: {
-                _id: 0,
-                // Overall score is the average of the technical and confidence averages across ALL questions.
-                overallScore: { $round: [{ $avg: ['$avgTechnical', '$avgConfidence'] }, 0] },
-                avgTechnical: { $round: ['$avgTechnical', 0] },
-                avgConfidence: { $round: ['$avgConfidence', 0] },
-            }
-        }
-    ]);
+    const session = await Session.findById(sessionId);
+    if (!session || !session.questions || session.questions.length === 0) {
+        return { overallScore: 0, avgTechnical: 0, avgConfidence: 0 };
+    }
 
-    return results[0] || { overallScore: 0, avgTechnical: 0, avgConfidence: 0 };
+    let totalTechnical = 0;
+    let totalConfidence = 0;
+    let evalCount = 0;
+
+    session.questions.forEach(q => {
+        if (q.isEvaluated) {
+            totalTechnical += (q.technicalScore || 0);
+            totalConfidence += (q.confidenceScore || 0);
+            evalCount++;
+        }
+    });
+
+    if (evalCount === 0) {
+        return { overallScore: 0, avgTechnical: 0, avgConfidence: 0 };
+    }
+
+    const avgTech = totalTechnical / evalCount;
+    const avgConf = totalConfidence / evalCount;
+    const overall = (avgTech + avgConf) / 2;
+
+    return {
+        overallScore: Math.round(overall),
+        avgTechnical: Math.round(avgTech),
+        avgConfidence: Math.round(avgConf)
+    };
 };
 // @desc    End the session early
 // @route   POST /api/sessions/:id/end
@@ -287,7 +293,7 @@ const endSession = asyncHandler(async (req, res) => {
         await session.save();
 
         const io = req.app.get('io');
-        pushSocketUpdate(io, userId, sessionId, 'SESSION_COMPLETED', 'Interview session ended.', session);
+        sessionService.pushSocketUpdate(io, userId, sessionId, 'SESSION_COMPLETED', 'Interview session ended.', session);
 
         res.json({ message: 'Session ended successfully.', session, success: true });
     } catch (error) {

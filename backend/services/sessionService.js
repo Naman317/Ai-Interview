@@ -126,24 +126,33 @@ export const evaluateAnswerInBackground = async (io, userId, session, questionId
         }
 
         const evalData = await evalResponse.json();
-        question.userAnswerText = transcription;
-        question.userSubmittedCode = code || "";
-        question.technicalScore = evalData.technicalScore;
-        question.confidenceScore = evalData.confidenceScore;
-        question.aiFeedback = evalData.aiFeedback;
-        question.idealAnswer = evalData.idealAnswer;
-        question.isEvaluated = true;
 
-        const allDone = session.questions.every(q => q.isEvaluated);
-        if (allDone || session.status === 'completed') {
-            session.status = 'completed';
-            session.endTime = session.endTime || new Date();
-            // Note: Calculation logic would go here or in a separate session aggregator
-            await session.save();
-            pushSocketUpdate(io, userId, session._id, 'SESSION_COMPLETED', 'Session finalized!', session);
+        await Session.updateOne(
+            { _id: session._id },
+            {
+                $set: {
+                    [`questions.${questionIdx}.userAnswerText`]: transcription,
+                    [`questions.${questionIdx}.userSubmittedCode`]: code || "",
+                    [`questions.${questionIdx}.technicalScore`]: evalData.technicalScore,
+                    [`questions.${questionIdx}.confidenceScore`]: evalData.confidenceScore,
+                    [`questions.${questionIdx}.aiFeedback`]: evalData.aiFeedback,
+                    [`questions.${questionIdx}.idealAnswer`]: evalData.idealAnswer,
+                    [`questions.${questionIdx}.isEvaluated`]: true
+                }
+            }
+        );
+
+        const latestSession = await Session.findById(session._id);
+        const allDone = latestSession.questions.every(q => q.isEvaluated);
+        if (allDone || latestSession.status === 'completed') {
+            if (latestSession.status !== 'completed') {
+                latestSession.status = 'completed';
+                latestSession.endTime = latestSession.endTime || new Date();
+                await latestSession.save();
+            }
+            pushSocketUpdate(io, userId, latestSession._id, 'SESSION_COMPLETED', 'Session finalized!', latestSession);
         } else {
-            await session.save();
-            pushSocketUpdate(io, userId, session._id, 'EVALUATION_COMPLETE', 'Feedback ready!', session);
+            pushSocketUpdate(io, userId, latestSession._id, 'EVALUATION_COMPLETE', 'Feedback ready!', latestSession);
         }
     } catch (error) {
         console.error(`[SessionService] Evaluation failed:`, error);

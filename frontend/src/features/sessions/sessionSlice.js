@@ -17,13 +17,7 @@ const initialState = {
 
 export const getSessions = createAsyncThunk('sessions/getAll', async (_, thunkAPI) => {
     try {
-        const user = JSON.parse(localStorage.getItem('user'));
-        const config = user && user.token ? {
-            headers: {
-                'Authorization': `Bearer ${user.token}`
-            }
-        } : {};
-        const response = await apiInstance.get('/api/sessions', config);
+        const response = await apiInstance.get('/api/sessions');
         return response.data;
     } catch (error) {
         const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -33,13 +27,7 @@ export const getSessions = createAsyncThunk('sessions/getAll', async (_, thunkAP
 
 export const createSession = createAsyncThunk('sessions/create', async (sessionData, thunkAPI) => {
     try {
-        const user = JSON.parse(localStorage.getItem('user'));
-        const config = {
-            headers: {
-                'Authorization': `Bearer ${user.token}`
-            }
-        };
-        const response = await apiInstance.post('/api/sessions', sessionData, config);
+        const response = await apiInstance.post('/api/sessions', sessionData);
         return response.data;
     } catch (error) {
         const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -49,13 +37,7 @@ export const createSession = createAsyncThunk('sessions/create', async (sessionD
 
 export const getSessionById = createAsyncThunk('sessions/getOne', async (sessionId, thunkAPI) => {
     try {
-        const user = JSON.parse(localStorage.getItem('user'));
-        const config = user && user.token ? {
-            headers: {
-                'Authorization': `Bearer ${user.token}`
-            }
-        } : {};
-        const response = await apiInstance.get(`/api/sessions/${sessionId}`, config);
+        const response = await apiInstance.get(`/api/sessions/${sessionId}`);
         return response.data;
     } catch (error) {
         const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -65,13 +47,7 @@ export const getSessionById = createAsyncThunk('sessions/getOne', async (session
 
 export const deleteSession = createAsyncThunk('sessions/delete', async (sessionId, thunkAPI) => {
     try {
-        const user = JSON.parse(localStorage.getItem('user'));
-        const config = user && user.token ? {
-            headers: {
-                'Authorization': `Bearer ${user.token}`
-            }
-        } : {};
-        const response = await apiInstance.delete(`/api/sessions/${sessionId}`, config);
+        const response = await apiInstance.delete(`/api/sessions/${sessionId}`);
         return response.data.id;
     }
     catch (error) {
@@ -82,13 +58,7 @@ export const deleteSession = createAsyncThunk('sessions/delete', async (sessionI
 
 export const submitAnswer = createAsyncThunk('sessions/submitAnswer', async ({ sessionId, formData }, thunkAPI) => {
     try {
-        const user = JSON.parse(localStorage.getItem('user'));
-        const config = {
-            headers: {
-                'Authorization': `Bearer ${user.token}`
-            }
-        };
-        const response = await apiInstance.post(`/api/sessions/${sessionId}/submit-answer`, formData, config);
+        const response = await apiInstance.post(`/api/sessions/${sessionId}/submit-answer`, formData);
         return response.data;
     }
     catch (error) {
@@ -99,13 +69,7 @@ export const submitAnswer = createAsyncThunk('sessions/submitAnswer', async ({ s
 
 export const endSession = createAsyncThunk('sessions/endSession', async (sessionId, thunkAPI) => {
     try {
-        const user = JSON.parse(localStorage.getItem('user'));
-        const config = {
-            headers: {
-                'Authorization': `Bearer ${user.token}`
-            }
-        };
-        const response = await apiInstance.post(`/api/sessions/${sessionId}/end`, {}, config);
+        const response = await apiInstance.post(`/api/sessions/${sessionId}/end`, {});
         return response.data;
     }
     catch (error) {

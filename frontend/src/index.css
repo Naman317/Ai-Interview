@@ -1,8 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
 body {
-  @apply bg-gray-50;
+  @apply bg-[#0a0a0f] text-white font-sans antialiased selection:bg-primary/30;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  @apply bg-surface/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+}
+
+.glass-card {
+  @apply bg-gradient-to-br from-white/[0.05] to-transparent backdrop-blur-md border border-white/10 rounded-2xl;
 }

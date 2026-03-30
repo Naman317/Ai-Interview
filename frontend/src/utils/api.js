@@ -13,12 +13,8 @@ api.interceptors.request.use(
     (config) => {
         const user = JSON.parse(localStorage.getItem('user'));
         if (user && user.token) {
-            // Use set or direct property access in a more universal way
-            if (config.headers.set) {
-                config.headers.set('Authorization', `Bearer ${user.token}`);
-            } else {
-                config.headers['Authorization'] = `Bearer ${user.token}`;
-            }
+            // Safely assign Authorization header
+            config.headers.Authorization = `Bearer ${user.token}`;
             console.log(`[API Request] Token attached for ${config.url}`);
         } else {
             console.warn(`[API Request] No token found for ${config.url}`);
