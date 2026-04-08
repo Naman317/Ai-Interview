@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../utils/api";
+import RoleIcon from "./RoleIcon";
 
 export default function InterviewReport({ sessionId, onClose }) {
   const [report, setReport] = useState(null);
@@ -66,8 +67,11 @@ export default function InterviewReport({ sessionId, onClose }) {
               <p className="text-gray-600 text-sm mb-2">Overall Performance</p>
               <p className="text-4xl font-bold text-blue-600">{overallScore}%</p>
             </div>
-            <div className={`text-6xl font-bold rounded-full p-4 ${getScoreBadge(overallScore)}`}>
-              {overallScore >= 80 ? "✓" : overallScore >= 60 ? "~" : "✗"}
+            <div className={`w-20 h-20 flex items-center justify-center rounded-full p-4 ${getScoreBadge(overallScore)}`}>
+              <RoleIcon 
+                icon={overallScore >= 80 ? 'check' : overallScore >= 60 ? 'target' : 'cross'} 
+                className="w-10 h-10" 
+              />
             </div>
           </div>
         </div>
@@ -167,15 +171,17 @@ export default function InterviewReport({ sessionId, onClose }) {
         <div className="flex gap-3 pt-6 border-t">
           <button
             onClick={() => window.print()}
-            className="flex-1 bg-gray-600 text-white py-2 rounded-lg font-semibold hover:bg-gray-700"
+            className="flex-1 flex items-center justify-center gap-2 bg-gray-600 text-white py-2 rounded-lg font-semibold hover:bg-gray-700 transition"
           >
-            🖨️ Print Report
+            <RoleIcon icon="print" className="w-4 h-4" />
+            Print Report
           </button>
           <button
             onClick={onClose}
-            className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700"
+            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
           >
-            ✓ Done
+            <RoleIcon icon="check" className="w-4 h-4" />
+            Done
           </button>
         </div>
       </div>

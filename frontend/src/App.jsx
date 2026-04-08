@@ -20,6 +20,7 @@ import CodingPractice from './pages/CodingPractice';
 import SheetDetails from './pages/SheetDetails';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import History from './pages/History';
 
 const App = () => {
   const [error, setError] = useState(null);
@@ -39,7 +40,7 @@ const App = () => {
   if (error) {
     return (
       <div className='min-h-screen bg-red-50 flex items-center justify-center'>
-        <div className='bg-white p-6 rounded-lg shadow-lg'>
+        <div className='bg-white p-6 rounded-xl shadow-lg border border-red-100'>
           <h1 className='text-red-600 text-xl font-bold mb-2'>Error Loading App</h1>
           <p className='text-gray-700'>{error}</p>
         </div>
@@ -48,7 +49,7 @@ const App = () => {
   }
 
   return (
-    <div className='min-h-screen bg-black'>
+    <div className='min-h-screen bg-white'>
       <Routes>
         <Route path='/landing' element={<LandingPage />} />
         <Route path='/login' element={<Login />} />
@@ -62,6 +63,7 @@ const App = () => {
           <Route path='/sheets/:id' element={<SheetDetails />} />
           <Route path='/analytics' element={<Analytics />} />
           <Route path='/settings' element={<Settings />} />
+          <Route path='/history' element={<History />} />
           <Route path='/interview/:sessionId' element={<InterviewRunner />} />
           <Route path='/video-interview/:sessionId' element={<VideoInterviewRunner />} />
           <Route path="/review/:sessionId" element={<SessionReview />} />
@@ -69,7 +71,7 @@ const App = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      <ToastContainer theme="dark" position='top-right' autoClose={3000} />
+      <ToastContainer theme="light" position='top-right' autoClose={3000} />
     </div>
   );
 }

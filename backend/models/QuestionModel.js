@@ -42,7 +42,7 @@ const questionSchema = new mongoose.Schema({
     }],
     constraints: [String],
     interviewGuide: {
-        approach: String,
+        approach: [String],
         verbalization: String,
         complexityAnalysis: {
             time: String,

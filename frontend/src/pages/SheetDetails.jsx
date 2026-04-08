@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Editor from '@monaco-editor/react';
-import api from '../utils/api';
+import RoleIcon from '../components/RoleIcon';
 import { toast } from 'react-toastify';
 
 const SheetDetails = () => {
@@ -42,6 +42,51 @@ const SheetDetails = () => {
         setCode(problem.userSolution?.code || getDefaultCode(language));
         setLanguage(problem.userSolution?.language || 'javascript');
         setEvaluation(problem.aiEvaluation || null);
+    };
+
+    const handleToggleComplete = async (e, problem) => {
+        e.stopPropagation();
+        const oldSheet = { ...sheet };
+        const newStatus = problem.status === 'completed' ? 'not-started' : 'completed';
+        
+        // Optimistic Update
+        const updatedProblems = sheet.problems.map(p => 
+            p._id === problem._id ? { ...p, status: newStatus } : p
+        );
+        
+        const completedCount = updatedProblems.filter(p => p.status === 'completed').length;
+        const totalCount = updatedProblems.length;
+        const newPercentage = Math.round((completedCount / totalCount) * 100);
+        
+        const updatedSheet = {
+            ...sheet,
+            problems: updatedProblems,
+            progress: {
+                ...sheet.progress,
+                completed: completedCount,
+                percentage: newPercentage
+            }
+        };
+
+        setSheet(updatedSheet);
+        if (selectedProblem?._id === problem._id) {
+            setSelectedProblem({ ...selectedProblem, status: newStatus });
+        }
+
+        try {
+            const { data } = await api.put(`/api/sheets/${id}/problems/${problem._id}`, {
+                status: newStatus
+            });
+            // Final sync with server data
+            setSheet(data);
+            if (selectedProblem?._id === problem._id) {
+                const syncProblem = data.problems.find(p => p._id === problem._id);
+                if (syncProblem) setSelectedProblem(syncProblem);
+            }
+        } catch (error) {
+            setSheet(oldSheet); // Rollback
+            toast.error('Failed to sync with server');
+        }
     };
 
     const getDefaultCode = (lang) => {
@@ -203,16 +248,31 @@ const SheetDetails = () => {
                                 className="bg-slate-800 p-6 rounded-xl cursor-pointer hover:bg-slate-700 transition"
                             >
                                 <div className="flex justify-between items-start mb-3">
-                                    <h3 className="text-xl font-bold">{problem.title}</h3>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={(e) => handleToggleComplete(e, problem)}
+                                            className={`p-1.5 rounded-lg border-2 transition-all ${
+                                                problem.status === 'completed' 
+                                                ? 'bg-green-500/10 border-green-500 text-green-500' 
+                                                : 'border-slate-600 text-slate-600 hover:border-slate-400'
+                                            }`}
+                                            title="Mark as completed"
+                                        >
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </button>
+                                        <h3 className="text-xl font-bold">{problem.title}</h3>
+                                    </div>
                                     <span
-                                        className={`px-2 py-1 rounded text-xs ${problem.status === 'completed'
+                                        className={`px-2 py-1 rounded text-xs capitalize ${problem.status === 'completed'
                                             ? 'bg-green-600'
                                             : problem.status === 'in-progress'
                                                 ? 'bg-yellow-600'
                                                 : 'bg-slate-600'
                                             }`}
                                     >
-                                        {problem.status}
+                                        {problem.status === 'not-started' ? 'To Do' : problem.status}
                                     </span>
                                 </div>
                                 <p className="text-slate-400 text-sm mb-3 line-clamp-2">
@@ -398,7 +458,9 @@ const SheetDetails = () => {
                             </div>
                         ) : (
                             <div className="text-center py-12">
-                                <div className="text-6xl mb-4">🤖</div>
+                                <div className="flex justify-center mb-4">
+                                    <RoleIcon icon="robot" className="w-16 h-16 text-blue-500 opacity-50" />
+                                </div>
                                 <h3 className="text-2xl font-bold mb-2">No Evaluation Yet</h3>
                                 <p className="text-slate-400 mb-6">
                                     Submit your solution and click "AI Evaluate" to get feedback
@@ -429,16 +491,39 @@ const SheetDetails = () => {
                                             <span className="text-slate-500 text-[10px] font-black uppercase block">Space Complexity</span>
                                             <span className="text-purple-400 font-bold">{selectedProblem.interviewGuide.complexityAnalysis.space}</span>
                                         </div>
+                                        <button
+                                            onClick={handleGenerateGuide}
+                                            disabled={isGeneratingGuide}
+                                            className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-400 hover:text-white transition-all disabled:opacity-50"
+                                            title="Regenerate Strategy Guide"
+                                        >
+                                            <svg className={`w-5 h-5 ${isGeneratingGuide ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                        </button>
                                     </div>
                                 </div>
 
                                 <section className="bg-slate-800/50 border border-slate-700 p-8 rounded-3xl">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <span className="text-2xl">🧠</span>
-                                        <h3 className="text-xl font-bold">Conceptual Approach</h3>
+                                    <div className="flex items-center gap-3 mb-4 text-blue-400">
+                                        <RoleIcon icon="brain" className="w-6 h-6" />
+                                        <h3 className="text-xl font-bold text-white">Conceptual Approach</h3>
                                     </div>
-                                    <div className="text-slate-300 leading-relaxed whitespace-pre-wrap">
-                                        {selectedProblem.interviewGuide.approach}
+                                    <div className="text-slate-300 leading-relaxed">
+                                        {Array.isArray(selectedProblem.interviewGuide.approach) ? (
+                                            <div className="space-y-4">
+                                                {selectedProblem.interviewGuide.approach.map((step, idx) => (
+                                                    <div key={idx} className="flex gap-4">
+                                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-[10px] font-bold">
+                                                            {idx + 1}
+                                                        </span>
+                                                        <p className="flex-1 pt-0.5">{step}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="whitespace-pre-wrap">{selectedProblem.interviewGuide.approach}</div>
+                                        )}
                                     </div>
                                 </section>
 
@@ -446,21 +531,24 @@ const SheetDetails = () => {
                                     <div className="absolute top-0 right-0 p-8 opacity-5">
                                         <span className="text-6xl text-blue-500 font-black">QUOTE</span>
                                     </div>
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <span className="text-2xl">🗣️</span>
+                                    <div className="flex items-center gap-3 mb-4 text-blue-400">
+                                        <RoleIcon icon="speech" className="w-6 h-6" />
                                         <h3 className="text-xl font-bold text-blue-400">How to Explain (Talking Points)</h3>
                                     </div>
                                     <div className="bg-slate-900/50 p-6 rounded-2xl italic text-slate-300 border border-blue-500/10">
                                         "{selectedProblem.interviewGuide.verbalization}"
                                     </div>
-                                    <p className="mt-4 text-xs text-slate-500 font-medium tracking-tight">
+                                    <p className="mt-4 text-xs text-slate-500 font-medium tracking-tight flex items-center gap-1.5">
+                                        <RoleIcon icon="lightbulb" className="w-3 h-3 text-yellow-500" />
                                         Tip: Use these phrases to guide the interviewer through your thought process clearly.
                                     </p>
                                 </section>
                             </div>
                         ) : (
                             <div className="text-center py-20 bg-slate-800/30 rounded-3xl border-2 border-dashed border-slate-700">
-                                <div className="text-6xl mb-6">🎙️</div>
+                                <div className="flex justify-center mb-6">
+                                    <RoleIcon icon="mic" className="w-16 h-16 text-blue-500 opacity-50" />
+                                </div>
                                 <h3 className="text-2xl font-bold mb-3">No Interview Guide Available</h3>
                                 <p className="text-slate-400 mb-8 max-w-md mx-auto">
                                     Let AI analyze this problem and generate a step-by-step approach and verbalization script for your interview.

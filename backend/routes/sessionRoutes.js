@@ -7,7 +7,8 @@ import {
     getSessions,
     submitAnswer,
     analyzeVideo,
-    getInterviewReport
+    getInterviewReport,
+    getUserStats
 } from "../controllers/sessionController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { uploadSingleAudio, uploadSingleVideo, uploadSingleResume } from "../middleware/uploadMiddleware.js";
@@ -21,6 +22,8 @@ router.use(protect);
 router.route("/")
     .get(getSessions)      // Fetch all sessions
     .post(uploadSingleResume, createSession);  // Create new session
+
+router.route("/stats").get(getUserStats);
 
 // 2. ID Routes ("/:id")
 router.route("/:id")

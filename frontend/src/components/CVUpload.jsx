@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../utils/api';
+import RoleIcon from './RoleIcon';
 
 export default function CVUpload({ onUploadSuccess }) {
   const [file, setFile] = useState(null);
@@ -50,7 +51,10 @@ export default function CVUpload({ onUploadSuccess }) {
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-6">
-      <h3 className="text-lg font-bold text-slate-900 mb-4">📄 Upload Your CV</h3>
+      <div className="flex items-center gap-2 mb-4">
+        <RoleIcon icon="file" className="w-5 h-5 text-blue-600" />
+        <h3 className="text-lg font-bold text-slate-900">Upload Your CV</h3>
+      </div>
 
       <div className="space-y-4">
         <label className="block">
@@ -61,7 +65,9 @@ export default function CVUpload({ onUploadSuccess }) {
               onChange={handleFileChange}
               className="hidden"
             />
-            <div className="text-4xl mb-2">📎</div>
+            <div className="flex justify-center mb-2">
+              <RoleIcon icon="paperclip" className="w-10 h-10 text-slate-400 group-hover:text-blue-500 transition" />
+            </div>
             <p className="text-sm text-slate-600">
               {preview ? preview : 'Click to upload PDF or drag and drop'}
             </p>
@@ -70,8 +76,9 @@ export default function CVUpload({ onUploadSuccess }) {
         </label>
 
         {file && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-sm text-green-800">✓ {file.name} selected</p>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2">
+            <RoleIcon icon="check" className="w-4 h-4 text-green-600" />
+            <p className="text-sm text-green-800">{file.name} selected</p>
           </div>
         )}
 

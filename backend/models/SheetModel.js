@@ -82,7 +82,7 @@ const problemSchema = new mongoose.Schema({
         explanation: String
     }],
     interviewGuide: {
-        approach: String,
+        approach: [String],
         verbalization: String,
         complexityAnalysis: {
             time: String,
@@ -142,13 +142,12 @@ const sheetSchema = new mongoose.Schema({
 });
 
 // Update progress before saving
-sheetSchema.pre('save', function (next) {
+sheetSchema.pre('save', async function () {
     if (this.problems && this.problems.length > 0) {
         this.progress.total = this.problems.length;
         this.progress.completed = this.problems.filter(p => p.status === 'completed').length;
         this.progress.percentage = Math.round((this.progress.completed / this.progress.total) * 100);
     }
-    next();
 });
 
 // Index for faster queries

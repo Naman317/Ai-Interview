@@ -194,7 +194,7 @@ const updateProblem = asyncHandler(async (req, res) => {
         throw new Error('Problem not found');
     }
 
-    const { title, description, difficulty, tags, testCases, hints, constraints, examples } = req.body;
+    const { title, description, difficulty, tags, testCases, hints, constraints, examples, status } = req.body;
 
     if (title) problem.title = title;
     if (description) problem.description = description;
@@ -204,7 +204,9 @@ const updateProblem = asyncHandler(async (req, res) => {
     if (hints) problem.hints = hints;
     if (constraints) problem.constraints = constraints;
     if (examples) problem.examples = examples;
+    if (status) problem.status = status;
 
+    sheet.markModified('problems');
     await sheet.save();
 
     res.json(sheet);
@@ -358,10 +360,7 @@ const generateGuide = asyncHandler(async (req, res) => {
     }
 
     try {
-        // If guide already exists, return it (caching)
-        if (problem.interviewGuide && problem.interviewGuide.approach) {
-            return res.json({ guide: problem.interviewGuide });
-        }
+        console.log(`FORCING REFRESH: Generating guide for: ${problem.title}`);
 
         // Call AI service for guide generation
         const aiResponse = await fetch(`${AI_SERVICE_URL}/generate-guide`, {
@@ -386,8 +385,8 @@ const generateGuide = asyncHandler(async (req, res) => {
             approach: guide.approach,
             verbalization: guide.verbalization,
             complexityAnalysis: {
-                time: guide.complexityAnalysis?.time || 'O(N)',
-                space: guide.complexityAnalysis?.space || 'O(1)'
+                time: guide.complexityAnalysis?.time || 'Analysis Pending',
+                space: guide.complexityAnalysis?.space || 'Analysis Pending'
             }
         };
 

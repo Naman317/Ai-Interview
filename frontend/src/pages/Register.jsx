@@ -53,82 +53,78 @@ const RegisterPro = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-      </div>
-
+    <div className="min-h-screen bg-surface flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-400 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">AI</span>
+            <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-sm">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
             </div>
-            <h1 className="text-2xl font-bold text-white">InterviewAI</h1>
+            <h1 className="text-xl font-bold text-primary">InterviewAI</h1>
           </div>
-          <p className="text-slate-400">Start mastering your interview skills today</p>
+          <p className="text-gray-500 text-sm">Start mastering your interview skills today</p>
         </div>
 
         {/* Register Card */}
-        <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-blue-600/30 rounded-xl p-8 backdrop-blur">
-          <h2 className="text-xl font-bold text-white mb-6">Create your account</h2>
+        <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-card">
+          <h2 className="text-lg font-bold text-gray-900 mb-6">Create your account</h2>
 
           <form onSubmit={onSubmit} className="space-y-4 mb-6">
             {/* Username */}
             <div>
-              <label className="block text-slate-300 font-medium mb-2">Full Name</label>
+              <label className="block text-gray-700 font-medium mb-2 text-sm">Full Name</label>
               <input
                 type="text"
                 name="name"
                 value={name}
                 onChange={onChange}
                 placeholder="Enter your full name"
-                className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-blue-500 focus:outline-none placeholder-slate-500 focus:bg-slate-700 transition"
+                className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-2.5 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none placeholder-gray-400 transition"
                 required
               />
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-slate-300 font-medium mb-2">Email address</label>
+              <label className="block text-gray-700 font-medium mb-2 text-sm">Email address</label>
               <input
                 type="email"
                 name="email"
                 value={email}
                 onChange={onChange}
                 placeholder="Enter your email"
-                className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-blue-500 focus:outline-none placeholder-slate-500 focus:bg-slate-700 transition"
+                className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-2.5 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none placeholder-gray-400 transition"
                 required
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-slate-300 font-medium mb-2">Password</label>
+              <label className="block text-gray-700 font-medium mb-2 text-sm">Password</label>
               <input
                 type="password"
                 name="password"
                 value={password}
                 onChange={onChange}
                 placeholder="Create a password"
-                className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-blue-500 focus:outline-none placeholder-slate-500 focus:bg-slate-700 transition"
+                className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-2.5 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none placeholder-gray-400 transition"
                 required
               />
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-slate-300 font-medium mb-2">Confirm password</label>
+              <label className="block text-gray-700 font-medium mb-2 text-sm">Confirm password</label>
               <input
                 type="password"
                 name="password2"
                 value={password2}
                 onChange={onChange}
                 placeholder="Confirm your password"
-                className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-blue-500 focus:outline-none placeholder-slate-500 focus:bg-slate-700 transition"
+                className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-2.5 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none placeholder-gray-400 transition"
                 required
               />
             </div>
@@ -137,23 +133,23 @@ const RegisterPro = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold py-2.5 rounded-lg transition-all shadow-lg shadow-blue-600/30 disabled:opacity-50 mt-6"
+              className="w-full bg-accent hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-all shadow-sm disabled:opacity-50 mt-6"
             >
               {isLoading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
 
           {/* Sign In Link */}
-          <p className="text-center text-slate-400">
+          <p className="text-center text-gray-500 text-sm">
             Already have an account?{' '}
-            <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium">
+            <Link to="/login" className="text-accent hover:text-blue-700 font-medium">
               Sign in
             </Link>
           </p>
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-slate-500 text-sm">
+        <div className="mt-8 text-center text-gray-400 text-xs">
           <p>By creating an account, you agree to our Terms of Service and Privacy Policy</p>
         </div>
       </div>

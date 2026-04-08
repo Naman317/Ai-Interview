@@ -56,12 +56,12 @@ function SessionReview() {
 
     if (isLoading) {
         return (
-            <div className="flex bg-black min-h-screen text-white">
+            <div className="flex bg-surface min-h-screen text-gray-900">
                 <Sidebar />
                 <main className="flex-1 ml-64 flex items-center justify-center p-8">
                     <div className="text-center space-y-4">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-600 border-white/10 mx-auto" />
-                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Generating your analysis...</p>
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-accent border-gray-200 mx-auto" />
+                        <p className="text-gray-400 text-sm font-medium">Generating your analysis...</p>
                     </div>
                 </main>
             </div>
@@ -70,14 +70,18 @@ function SessionReview() {
 
     if (!activeSession || activeSession.status !== 'completed') {
         return (
-            <div className="flex bg-black min-h-screen text-white">
+            <div className="flex bg-surface min-h-screen text-gray-900">
                 <Sidebar />
                 <main className="flex-1 ml-64 flex items-center justify-center p-8">
-                    <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-10 rounded-[2.5rem] text-center space-y-6">
-                        <div className="text-5xl">⏳</div>
-                        <h2 className="text-2xl font-black uppercase tracking-tight">Report Not Ready</h2>
-                        <p className="text-slate-500 font-medium">This session is still being processed by our AI network. Please check back in a few moments.</p>
-                        <Link to="/dashboard" className="inline-block w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl transition hover:bg-blue-700 active:scale-95 text-xs">Return to Dashboard</Link>
+                    <div className="max-w-md w-full bg-white border border-gray-200 p-10 rounded-2xl text-center space-y-6 shadow-card">
+                        <div className="w-16 h-16 bg-amber-50 rounded-2xl mx-auto flex items-center justify-center">
+                            <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-bold text-primary">Report Not Ready</h2>
+                        <p className="text-gray-500 text-sm">This session is still being processed. Please check back in a few moments.</p>
+                        <Link to="/dashboard" className="inline-block w-full bg-accent text-white py-3 rounded-xl font-semibold shadow-sm transition hover:bg-blue-700 text-sm">Return to Dashboard</Link>
                     </div>
                 </main>
             </div>
@@ -92,22 +96,22 @@ function SessionReview() {
         datasets: [{
             label: 'Score',
             data: questions.map(q => q.technicalScore || 0),
-            backgroundColor: questions.map(q => (q.technicalScore || 0) > 70 ? '#3b82f6' : '#f59e0b'),
-            borderRadius: 6,
+            backgroundColor: questions.map(q => (q.technicalScore || 0) > 70 ? '#2563eb' : '#f59e0b'),
+            borderRadius: 8,
         }],
     };
 
     return (
-        <div className="flex bg-black min-h-screen text-white">
+        <div className="flex bg-surface min-h-screen text-gray-900">
             <Sidebar />
             <main className="flex-1 ml-64 p-8 overflow-auto">
-                <div className="max-w-5xl mx-auto space-y-12">
+                <div className="max-w-5xl mx-auto space-y-10">
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-slate-900 pb-10">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-gray-200 pb-8">
                         <div>
-                            <span className="text-blue-500 font-black uppercase tracking-[0.2em] text-[10px]">Assessment Analysis</span>
-                            <h1 className="text-4xl sm:text-5xl font-black tracking-tight mt-2 uppercase">
-                                {role} <span className="text-slate-600 font-medium lowercase">({level})</span>
+                            <span className="text-accent font-semibold text-xs uppercase tracking-wider">Assessment Analysis</span>
+                            <h1 className="text-3xl sm:text-4xl font-bold text-primary mt-2">
+                                {role} <span className="text-gray-400 font-normal text-lg">({level})</span>
                             </h1>
                         </div>
                     </div>
@@ -115,21 +119,21 @@ function SessionReview() {
                     {/* Summary Stats */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {[
-                            { label: 'Overall Result', value: `${overallScore}%`, color: 'blue' },
-                            { label: 'Avg Technical', value: `${finalMetrics.avgTechnical || 0}%`, color: 'slate' },
-                            { label: 'Avg Confidence', value: `${finalMetrics.avgConfidence || 0}%`, color: 'slate' },
-                            { label: 'Session Time', value: formatDuration(startTime, endTime), color: 'slate' }
+                            { label: 'Overall Result', value: `${overallScore}%`, highlight: true },
+                            { label: 'Avg Technical', value: `${finalMetrics.avgTechnical || 0}%` },
+                            { label: 'Avg Confidence', value: `${finalMetrics.avgConfidence || 0}%` },
+                            { label: 'Session Time', value: formatDuration(startTime, endTime) }
                         ].map((stat, i) => (
-                            <div key={i} className={`bg-slate-900/50 p-8 rounded-[2rem] border border-slate-800/50 group hover:border-slate-700 transition-colors`}>
-                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">{stat.label}</p>
-                                <p className={`text-3xl font-black leading-none ${stat.color === 'blue' ? 'text-blue-500' : 'text-white'}`}>{stat.value}</p>
+                            <div key={i} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-card hover:shadow-card-hover transition-all">
+                                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">{stat.label}</p>
+                                <p className={`text-3xl font-bold ${stat.highlight ? 'text-accent' : 'text-gray-900'}`}>{stat.value}</p>
                             </div>
                         ))}
                     </div>
 
                     {/* Performance Chart */}
-                    <div className="bg-slate-900/30 p-8 rounded-[2.5rem] border border-slate-800/50">
-                        <h3 className="text-[10px] font-black text-slate-500 mb-8 uppercase tracking-[0.2em]">Per-Question Performance</h3>
+                    <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-card">
+                        <h3 className="text-xs font-medium text-gray-400 mb-6 uppercase tracking-wider">Per-Question Performance</h3>
                         <div className="h-64 sm:h-80 relative">
                             <Bar
                                 data={barData}
@@ -138,25 +142,27 @@ function SessionReview() {
                                     plugins: {
                                         legend: { display: false },
                                         tooltip: {
-                                            backgroundColor: '#0f172a',
+                                            backgroundColor: '#ffffff',
+                                            titleColor: '#1a1a5e',
+                                            bodyColor: '#6b7280',
                                             titleFont: { size: 14, weight: 'bold' },
                                             bodyFont: { size: 12 },
                                             padding: 12,
-                                            borderRadius: 8,
+                                            borderRadius: 12,
                                             borderWidth: 1,
-                                            borderColor: '#1e293b'
+                                            borderColor: '#e5e7eb'
                                         }
                                     },
                                     scales: {
                                         y: {
                                             beginAtZero: true,
                                             max: 100,
-                                            grid: { color: '#1e293b', drawBorder: false },
-                                            ticks: { color: '#64748b', font: { weight: 'bold' } }
+                                            grid: { color: '#f3f4f6', drawBorder: false },
+                                            ticks: { color: '#9ca3af', font: { weight: '500' } }
                                         },
                                         x: {
                                             grid: { display: false },
-                                            ticks: { color: '#64748b', font: { weight: 'bold' } }
+                                            ticks: { color: '#9ca3af', font: { weight: '500' } }
                                         }
                                     }
                                 }}
@@ -165,10 +171,14 @@ function SessionReview() {
                     </div>
 
                     {/* Detailed Review */}
-                    <div className="space-y-8">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-blue-600/20">✓</div>
-                            <h3 className="text-2xl font-black uppercase tracking-tight">Answer Intelligence</h3>
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-sm">
+                                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-primary">Answer Intelligence</h3>
                         </div>
 
                         <div className="space-y-6">
@@ -178,53 +188,53 @@ function SessionReview() {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     key={index}
-                                    className="bg-slate-900/30 rounded-[2.5rem] border border-slate-800/50 overflow-hidden group hover:border-slate-700 transition-all duration-500"
+                                    className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300"
                                 >
-                                    <div className="p-8 sm:p-10 space-y-8">
-                                        <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
-                                            <h4 className="text-xl sm:text-2xl font-bold flex-1 leading-tight group-hover:text-blue-400 transition-colors">
-                                                <span className="text-blue-500 mr-2 font-black italic">Q{index + 1}.</span> {sanitizeQuestionText(q.questionText)}
+                                    <div className="p-8 space-y-6">
+                                        <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
+                                            <h4 className="text-base sm:text-lg font-semibold flex-1 leading-relaxed text-gray-900">
+                                                <span className="text-accent mr-2 font-bold">Q{index + 1}.</span> {sanitizeQuestionText(q.questionText)}
                                             </h4>
                                             <div className="flex gap-2 shrink-0">
-                                                <div className="px-4 py-2 rounded-xl bg-blue-600/5 border border-blue-600/20 flex flex-col items-center min-w-[70px]">
-                                                    <span className="text-[8px] font-black uppercase text-slate-500 mb-1">Tech Score</span>
-                                                    <span className="text-sm font-black text-blue-500">{q.technicalScore}%</span>
+                                                <div className="px-4 py-2 rounded-xl bg-accent/5 border border-accent/20 flex flex-col items-center min-w-[70px]">
+                                                    <span className="text-[9px] font-medium uppercase text-gray-400 mb-1">Tech Score</span>
+                                                    <span className="text-sm font-bold text-accent">{q.technicalScore}%</span>
                                                 </div>
-                                                <div className="px-4 py-2 rounded-xl bg-slate-800/30 border border-slate-700/50 flex flex-col items-center min-w-[70px]">
-                                                    <span className="text-[8px] font-black uppercase text-slate-500 mb-1">Confidence</span>
-                                                    <span className="text-sm font-black text-slate-300">{q.confidenceScore}%</span>
+                                                <div className="px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center min-w-[70px]">
+                                                    <span className="text-[9px] font-medium uppercase text-gray-400 mb-1">Confidence</span>
+                                                    <span className="text-sm font-bold text-gray-700">{q.confidenceScore}%</span>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-3">
-                                                <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest ml-1">Your Submission</label>
-                                                <div className="bg-slate-950/50 rounded-2xl border border-slate-800/50 p-6 min-h-[120px]">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Your Submission</label>
+                                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-5 min-h-[120px]">
                                                     {q.userAnswerText ? (
-                                                        <p className="text-sm text-slate-400 italic leading-relaxed">"{q.userAnswerText}"</p>
+                                                        <p className="text-sm text-gray-600 italic leading-relaxed">"{q.userAnswerText}"</p>
                                                     ) : (
-                                                        <p className="text-sm text-slate-600 italic">No oral answer recorded.</p>
+                                                        <p className="text-sm text-gray-400 italic">No oral answer recorded.</p>
                                                     )}
                                                     {q.userSubmittedCode && q.userSubmittedCode !== "undefined" && (
-                                                        <div className="mt-4 pt-4 border-t border-slate-800">
-                                                            <span className="text-[9px] font-black text-slate-600 uppercase mb-2 block">Code</span>
-                                                            <pre className="text-xs font-mono text-slate-500 whitespace-pre-wrap">{q.userSubmittedCode}</pre>
+                                                        <div className="mt-4 pt-4 border-t border-gray-200">
+                                                            <span className="text-xs font-medium text-gray-400 uppercase mb-2 block">Code</span>
+                                                            <pre className="text-xs font-mono text-gray-600 whitespace-pre-wrap">{q.userSubmittedCode}</pre>
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="space-y-3">
-                                                <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest ml-1">AI Feedback</label>
-                                                <div className="bg-blue-600/5 border border-blue-600/10 p-6 rounded-2xl text-sm italic text-blue-400/80 leading-relaxed min-h-[120px]">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">AI Feedback</label>
+                                                <div className="bg-accent/5 border border-accent/10 p-5 rounded-xl text-sm text-accent/80 leading-relaxed min-h-[120px]">
                                                     "{q.aiFeedback}"
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="pt-6 border-t border-slate-900/50">
-                                            <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest ml-1 mb-3 block">Ideal Solution</label>
-                                            <pre className="bg-slate-950 p-8 rounded-2xl text-[12px] text-slate-500 font-mono whitespace-pre-wrap shadow-inner leading-relaxed overflow-x-auto">
+                                        <div className="pt-6 border-t border-gray-100">
+                                            <label className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3 block">Ideal Solution</label>
+                                            <pre className="bg-gray-50 p-6 rounded-xl text-xs text-gray-600 font-mono whitespace-pre-wrap leading-relaxed overflow-x-auto border border-gray-100">
                                                 {formatIdealAnswer(q.idealAnswer)}
                                             </pre>
                                         </div>

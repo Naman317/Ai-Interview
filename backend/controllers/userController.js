@@ -3,6 +3,7 @@ import asyncHandler from 'express-async-handler';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import Session from '../models/SessionModel.js';
 import { processCVFile } from '../services/cvParser.js';
 
 
@@ -239,4 +240,24 @@ const parseCV = asyncHandler(async (req, res) => {
     }
 });
 
-export { registerUser, loginUser, googleLogin, getUserProfile, updateUserProfile, uploadCV, parseCV };
+// @desc    Delete user account and all associated data
+// @route   DELETE /api/users/profile
+// @access  Private
+const deleteUser = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        // Delete all sessions associated with this user
+        await Session.deleteMany({ user: req.user._id });
+        
+        // Delete the user
+        await user.deleteOne();
+        
+        res.status(200).json({ message: 'User and all associated data deleted successfully' });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
+
+export { registerUser, loginUser, googleLogin, getUserProfile, updateUserProfile, uploadCV, parseCV, deleteUser };

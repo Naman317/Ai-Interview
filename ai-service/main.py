@@ -9,52 +9,133 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from typing import Optional
 import whisper
+from google import genai
+import requests
+from typing import List
+
+# Load environment variables
+load_dotenv()
+
+AI_SERVICE_PORT = int(os.getenv("AI_SERVICE_PORT", 8000))
+OLLAMA_MODEL_NAME = os.getenv("OLLAMA_MODEL_NAME", "phi")
+GEMINI_API_KEY = os.getenv("GEMINI_API")
 
 # Try to import ollama and check if service is available
 OLLAMA_AVAILABLE = False
 try:
     import ollama
-    # Assume Ollama is available if package is installed
-    # The actual service check happens at endpoint call time
-    OLLAMA_AVAILABLE = True
-    print("✓ Ollama package imported successfully")
+    # Double check if server is reachable
+    try:
+        requests.get("http://localhost:11434/api/tags", timeout=1)
+        OLLAMA_AVAILABLE = True
+        print("✓ Ollama service is reachable and running")
+    except:
+        OLLAMA_AVAILABLE = False
+        print("⚠ Ollama package exists but service is NOT reachable on localhost:11434")
 except ImportError:
     OLLAMA_AVAILABLE = False
     ollama = None
-    print("⚠ Ollama package not installed, using mock questions")
+    print("⚠ Ollama package not installed, using Gemini/Mock logic")
 
+# Configure Gemini Client
+GEMINI_AVAILABLE = False
+client = None
+if GEMINI_API_KEY:
+    try:
+        # Standardize on gemini-1.5-flash for maximum reliability and broader key support
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        GEMINI_AVAILABLE = True
+        print("✓ Gemini SDK Client initialized (Gemini 2 Flash)")
+    except Exception as e:
+        print(f"⚠ Gemini SDK initialization failed: {e}")
+        GEMINI_AVAILABLE = False
+
+# Normalize Approach (ensure it is a List[str])
+def normalize_approach(data):
+    """Ensures approach is always a list of strings for schema consistency."""
+    if not data:
+        return ["Approach details pending."]
+    if isinstance(data, list):
+        return [str(item) for item in data if item]
+    if isinstance(data, str):
+        # If it's a multi-line string, split it into a list
+        if "\n" in data:
+            # Split and clean bullet points/numbers
+            return [line.strip().lstrip('123456789. -') for line in data.split('\n') if line.strip()]
+        return [data.strip()]
+    return ["Approach details currently unavailable."]
+
+# Helper for Gemini Calls
+def call_gemini(system_prompt, user_prompt, is_json=False):
+    if not GEMINI_AVAILABLE or not client:
+        return None
+    try:
+        model_id = 'gemini-2.5-flash'
+        
+        from google.genai import types
+        
+        config = types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            response_mime_type="application/json" if is_json else "text/plain"
+        )
+        
+        response = client.models.generate_content(
+            model=model_id,
+            contents=user_prompt,
+            config=config
+        )
+        
+        if not response or not response.text:
+            return None
+            
+        content = response.text.strip()
+        
+        # Robust JSON cleaning (GenAI SDK usually returns clean JSON if mime_type is set)
+        if is_json:
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0]
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0]
+            content = content.strip()
+            
+        return content
+    except Exception as e:
+        print(f"Gemini call failed: {e}")
+        return None
+
+# Pydub optional import
 try:
     from pydub import AudioSegment
 except (ImportError, ModuleNotFoundError):
     AudioSegment = None
-    # No warning - fallback to direct audio processing is automatic
 
-load_dotenv()
+# Initialize FastAPI app
+app = FastAPI(title="AI Interviewer Microservice", version="1.0")
 
-AI_SERVICE_PORT = int(os.getenv("AI_SERVICE_PORT",8000))
-OLLAMA_MODEL_NAME=os.getenv("OLLAMA_MODEL_NAME","mistral")  # Upgraded from 'phi' to 'mistral' for better quality
-
-app=FastAPI(title="AI Interviewer Microservice",version="1.0")
-
-origins = ["*"]
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-WHISPER_MODEL=None
+# Whisper Lazy Loading
+WHISPER_MODEL = None
+def get_whisper_model():
+    global WHISPER_MODEL
+    if WHISPER_MODEL is None:
+        try:
+            print("Loading Whisper Model (lazy)...")
+            WHISPER_MODEL = whisper.load_model("base.en")
+            print("Whisper Model Loaded Successfully")
+        except Exception as e:
+            print(f"Whisper Load Error: {e}")
+            return None
+    return WHISPER_MODEL
 
-try:
-    print("Loading Whisper Model ...")
-    WHISPER_MODEL=whisper.load_model("base.en")
-    print("Whisper Model Loaded Successfully")
-except Exception as e:
-    print("Error while loading Whisper Model")
-    print(e)
-
+# Models
 class QuestionResquest(BaseModel):
     role:str="MERN Stack Developer"
     level:str="Junior"
@@ -90,7 +171,7 @@ class GuideRequest(BaseModel):
     tags: list[str] = []
 
 class GuideResponse(BaseModel):
-    approach: str
+    approach: List[str]
     verbalization: str
     complexityAnalysis: dict
 
@@ -465,8 +546,8 @@ async def generate_questions(request:QuestionResquest):
             request.resume_experience_years
         )
         
-        # If Ollama is not available, use market questions with CV consideration
-        if not OLLAMA_AVAILABLE:
+        # Check if any AI service is available
+        if not OLLAMA_AVAILABLE and not GEMINI_AVAILABLE:
             role = request.role if request.role in MOCK_QUESTIONS else "MERN Stack Developer"
             level = request.level if request.level in MOCK_QUESTIONS.get(role, {}) else "Junior"
             questions = MOCK_QUESTIONS.get(role, {}).get(level, [])[:request.count]
@@ -544,70 +625,51 @@ async def generate_questions(request:QuestionResquest):
         )
         
         # BUILD USER PROMPT - WITH CV EMPHASIS
-        user_prompt = (
-            f"Generate exactly {request.count} interview questions for a {request.level} level {request.role}.\n"
-        )
-        
-        if cv_data["has_resume"]:
-            user_prompt += (
-                f"\nCRITICAL: They provided a resume.\n"
-                f"- 50% of questions MUST be about their specific skills/tech: {', '.join(cv_data['primary_skills'])}\n"
-                f"- Ask HOW they've used these skills, not just definitions\n"
-                f"- Reference their experience level ({cv_data['experience_years']} years)\n"
-                f"- Ask about specific challenges and decisions they made\n"
-            )
-        else:
-            user_prompt += (
-                f"\nNo resume provided - start with discovery questions to understand their background.\n"
-            )
-        
-        user_prompt += (
-            f"\nThese questions should:\n"
-            f"- Feel like a real interview (natural, specific, engaging)\n"
-            f"- Reference their actual experience/resume when available\n"
-            f"- Progress from comfortable to challenging\n"
-            f"- Mix question types: behavioral + technical + situational\n"
-            f"- Ask about real projects and decisions, not just definitions\n"
-            f"\nFormat: One question per line, no numbering, ready to ask."
-        )
-        
-        try:
-            response = ollama.generate(
-                model=OLLAMA_MODEL_NAME,
-                prompt=user_prompt,
-                system=system_prompt,
-                stream=False,
-                options={"temperature": 0.7, "top_p": 0.9, "top_k": 40}
-            )
-        except Exception as e:
-            # If Ollama fails, fall back to mock questions with CV consideration
-            print(f"Ollama generation failed: {e}")
-            role = request.role if request.role in MOCK_QUESTIONS else "MERN Stack Developer"
-            level = request.level if request.level in MOCK_QUESTIONS.get(role, {}) else "Junior"
-            questions = MOCK_QUESTIONS.get(role, {}).get(level, [])[:request.count]
-            
-            # Personalize with CV if available
-            if cv_data["has_resume"] and cv_data["primary_skills"]:
-                personalized = []
-                for skill in cv_data["primary_skills"][:2]:
-                    personalized.append(f"Tell me about your experience with {skill}. How have you used it in production?")
-                if cv_data["experience_years"]:
-                    personalized.append(f"With {cv_data['experience_years']} years of experience, walk me through the most complex system you've built.")
-                questions = personalized + questions[:request.count - len(personalized)]
-            
-            return QuestionResponse(questions=questions[:request.count], model_used="mock-questions")
+        user_prompt = f"Generate exactly {request.count} interview questions for a {request.level} level {request.role}."
 
-        raw_text = response['response'].strip()
-        questions = [q.strip() for q in raw_text.split('\n') if q.strip()]
+        # TRY OLLAMA FIRST (User Requested Priority)
+        if OLLAMA_AVAILABLE:
+            try:
+                response = ollama.generate(
+                    model=OLLAMA_MODEL_NAME,
+                    prompt=user_prompt,
+                    system=system_prompt,
+                    stream=False,
+                    options={"temperature": 0.7, "top_p": 0.9, "top_k": 40}
+                )
+                raw_text = response['response'].strip()
+                questions = [q.strip() for q in raw_text.split('\n') if q.strip()]
+                if len(questions) > 0:
+                    return QuestionResponse(questions=questions[:request.count], model_used=OLLAMA_MODEL_NAME)
+            except Exception as e:
+                print(f"Ollama generation failed: {e}")
+
+        # FALLBACK TO GEMINI
+        if GEMINI_AVAILABLE:
+            result = call_gemini(system_prompt, user_prompt)
+            if result:
+                questions = [q.strip() for q in result.split('\n') if q.strip()]
+                # Even if we got slightly fewer questions, Gemini questions are better than mock questions
+                if len(questions) > 0:
+                    return QuestionResponse(questions=questions[:request.count], model_used="gemini-2.5-flash")
+
+        # If we reach here, both AI services failed or returned empty. Fall back to mock questions
+        role = request.role if request.role in MOCK_QUESTIONS else "MERN Stack Developer"
+        level = request.level if request.level in MOCK_QUESTIONS.get(role, {}) else "Junior"
+        questions = MOCK_QUESTIONS.get(role, {}).get(level, [])[:request.count]
         
-        # If we got fewer questions than requested, fill with relevant mock questions
-        if len(questions) < request.count:
-            role = request.role if request.role in MOCK_QUESTIONS else "MERN Stack Developer"
-            level = request.level if request.level in MOCK_QUESTIONS.get(role, {}) else "Junior"
-            mock_questions = MOCK_QUESTIONS.get(role, {}).get(level, [])
-            questions.extend(mock_questions[:request.count - len(questions)])
+        # Personalize with CV if available
+        if cv_data["has_resume"] and cv_data["primary_skills"]:
+            personalized = []
+            for skill in cv_data["primary_skills"][:2]:
+                personalized.append(f"Tell me about your experience with {skill}. How have you used it in production?")
+            if cv_data["experience_years"]:
+                personalized.append(f"With {cv_data['experience_years']} years of experience, walk me through the most complex system you've built.")
+            questions = personalized + questions[:request.count - len(personalized)]
         
-        return QuestionResponse(questions=questions[:request.count], model_used=OLLAMA_MODEL_NAME)
+        return QuestionResponse(questions=questions[:request.count], model_used="mock-questions")
+
+
 
     except Exception as e:
         print(f"Error generating questions: {e}")
@@ -615,10 +677,12 @@ async def generate_questions(request:QuestionResquest):
 async def transcribe_audio(audioFile:UploadFile=File(...)):
     temp_audio_path = None
     try:
-        if not WHISPER_MODEL:
+        model = get_whisper_model()
+        if not model:
             raise HTTPException(status_code=503,detail="Whisper Model is not loaded")
         
         audio_bytes=await audioFile.read()
+
         
         # Try to use pydub if available for audio conversion
         if AudioSegment:
@@ -724,142 +788,92 @@ async def evaluate(request:EvaluationRequest):
                     aiFeedback="Your answer shows understanding of the topic. To improve: provide more specific examples from your actual experience, discuss trade-offs and decisions you made, and explain your thought process more clearly.",
                     idealAnswer=get_ideal_answer(request.role, request.level)
                 )
-        
-        if request.question_type=="oral":
-            assessment_instruction=(
-                "ORAL/BEHAVIORAL QUESTION EVALUATION:\n"
-                "Assess the quality of their explanation, clarity of thought, and depth of knowledge.\n"
-                "Look for: clear communication, specific examples, demonstrates thinking process, addresses multiple aspects of question.\n"
-                "Red flags: vague answers, no examples, doesn't answer the actual question asked, hesitation/uncertainty.\n"
-                "Excellent: Can clearly explain complex concepts, provides real project examples, shows critical thinking."
+
+        # 1. PREPARE PROMPTS
+        if request.question_type == "oral":
+            assessment_instr = "ORAL/BEHAVIORAL: Assess communication, clarity, and depth."
+        else:
+            assessment_instr = "TECHNICAL: Assess correctness, efficiency, and problem-solving."
+
+        system_prompt = (
+            "You are an expert interviewer. Evaluate based on: technicalScore (0-100), confidenceScore (0-100), aiFeedback, idealAnswer.\n"
+            f"Context: {assessment_instr}\n"
+            "Return JSON only."
+        )
+
+        user_prompt = (
+            f"Role: {request.role}, Level: {request.level}\n"
+            f"Question: {request.question}\n"
+            f"Answer: {request.user_answer}\n"
+            f"Code: {request.user_code}"
+        )
+
+        # 2. TRY OLLAMA FIRST (User Requested Priority)
+        if OLLAMA_AVAILABLE:
+            try:
+                if request.question_type == "oral":
+                    response = ollama.generate(
+                        model=OLLAMA_MODEL_NAME,
+                        prompt=user_prompt,
+                        system=system_prompt,
+                        format="json",
+                        stream=False,
+                        options={"temperature":0.2, "top_p":0.85}
+                    )
+                else:
+                    response = ollama.generate(
+                        model=OLLAMA_MODEL_NAME,
+                        prompt=user_prompt,
+                        system=system_prompt,
+                        format="json",
+                        stream=False,
+                        options={"temperature":0.2, "top_p":0.85}
+                    )
+                response_text = response['response'].strip()
+                # Process Ollama response JSON
+                evaluation_data = json.loads(response_text)
+                evaluation_data['aiFeedback'] = format_dict_field(evaluation_data.get('aiFeedback'), "Good effort.")
+                evaluation_data['idealAnswer'] = format_dict_field(evaluation_data.get('idealAnswer'), get_ideal_answer(request.role, request.level))
+                return EvaluationResponse(**evaluation_data)
+            except Exception as e:
+                print(f"Ollama evaluation failed: {e}")
+
+        # 3. FALLBACK TO GEMINI
+        if GEMINI_AVAILABLE:
+            result = call_gemini(system_prompt, user_prompt, is_json=True)
+            if result:
+                try:
+                    data = json.loads(result)
+                    return EvaluationResponse(
+                        technicalScore=int(data.get('technicalScore', 70)),
+                        confidenceScore=int(data.get('confidenceScore', 70)),
+                        aiFeedback=format_dict_field(data.get('aiFeedback'), "Good effort."),
+                        idealAnswer=format_dict_field(data.get('idealAnswer'), get_ideal_answer(request.role, request.level))
+                    )
+                except Exception as e:
+                    print(f"Gemini evaluation parsing failed: {e}")
+
+        # If both AI services fail, return mock evaluation
+        print(f"Both AI services failed evaluation. Falling back to mock data.")
+        answer_text = (request.user_answer or "") + (request.user_code or "")
+        if not answer_text.strip():
+            return EvaluationResponse(
+                technicalScore=0,
+                confidenceScore=0,
+                aiFeedback="No answer provided. Please provide a verbal or code response.",
+                idealAnswer=get_ideal_answer(request.role, request.level)
             )
         else:
-            assessment_instruction=(
-                "TECHNICAL/CODING QUESTION EVALUATION:\n"
-                "Assess the correctness of approach/code, efficiency, code quality, and problem-solving methodology.\n"
-                "Look for: correct solution, considers edge cases, clean code, explains trade-offs, optimizes when needed.\n"
-                "Red flags: doesn't compile/run, major logical flaws, no consideration of efficiency, poor code structure.\n"
-                "Excellent: Correct solution, optimal or near-optimal, clean implementation, explains reasoning."
+            answer_length = len(answer_text.split())
+            # Better scoring based on answer length
+            tech_score = min(75, 40 + (answer_length // 20))
+            conf_score = min(80, 50 + (answer_length // 30))
+            return EvaluationResponse(
+                technicalScore=tech_score,
+                confidenceScore=conf_score,
+                aiFeedback="Your answer shows understanding of the topic. To improve: provide more specific examples from your actual experience, discuss trade-offs and decisions you made, and explain your thought process more clearly.",
+                idealAnswer=get_ideal_answer(request.role, request.level)
             )
-        
-        system_prompt=(
-            "You are an experienced technical interviewer conducting a real interview. "
-            "Your job: Fairly evaluate a candidate's response and provide a comprehensive ideal answer.\n\n"
-            "EVALUATION CRITERIA:\n"
-            "Technical Score (0-100): How well they answered - correctness, completeness, depth\n"
-            "  - 90-100: Expert level, production-ready solution\n"
-            "  - 80-89: Very good, minor improvements\n"
-            "  - 70-79: Solid understanding, could use improvement\n"
-            "  - 60-69: Acceptable for their level, but gaps exist\n"
-            "  - 50-59: Below expectations, significant issues\n"
-            "  - Below 50: Major problems, doesn't meet basic requirements\n\n"
-            "Confidence Score (0-100): How confident and communicative they were\n"
-            "  - How clearly they explained their thinking\n"
-            "  - Whether they seemed confident or uncertain\n"
-            "  - Communication quality and professionalism\n\n"
-            f"{assessment_instruction}\n\n"
-            "IDEAL ANSWER INSTRUCTIONS:\n"
-            "- Generate a DETAILED and SPECIFIC ideal answer (3-5 sentences minimum)\n"
-            "- Include key points that should have been covered\n"
-            "- For behavioral: What was the problem, how did they solve it, what was the outcome\n"
-            "- For technical: Explain the approach, key concepts, trade-offs, and best practices\n"
-            "- Make it learning-focused: show what a great answer looks like\n"
-            "- Be specific to the role, level, and exact question asked\n"
-            "- DO NOT say 'The ideal answer would...' - provide the actual ideal answer\n\n"
-            "IMPORTANT: Give feedback as a real interviewer would:\n"
-            "- Be specific about what was good and what needs improvement\n"
-            "- Be fair and calibrated to their experience level\n"
-            "- Highlight patterns, not just isolated issues\n"
-            "- Provide constructive and actionable feedback\n\n"
-            "Output ONLY valid JSON (no markdown, no extra text)."
-        )
-        
-        user_prompt=(
-            f"Evaluate this interview response:\n\n"
-            f"CONTEXT:\n"
-            f"  Role: {request.role}\n"
-            f"  Level: {request.level}\n"
-            f"  Question Type: {request.question_type}\n\n"
-            f"QUESTION ASKED:\n"
-            f"  {request.question}\n\n"
-            f"CANDIDATE'S RESPONSE:\n"
-            f"  Verbal Answer: {request.user_answer or '(No verbal answer)'}\n"
-            f"  Code/Solution: {request.user_code or '(No code provided)'}\n\n"
-            f"Provide your evaluation with clear scores, feedback, and a detailed ideal answer.\n"
-            f"Return only JSON with: technicalScore, confidenceScore, aiFeedback, idealAnswer\n"
-            f"Remember: idealAnswer should be a specific, detailed answer showing what excellence looks like."
-        )
-        try:
-            response=ollama.generate(
-                model=OLLAMA_MODEL_NAME,
-                prompt=user_prompt,
-                system=system_prompt,
-                format="json",
-                stream=False,
-                options={"temperature":0.2, "top_p":0.85}
-            )
-        except Exception as e:
-            # If Ollama fails, return mock evaluation
-            print(f"Ollama evaluation failed: {e}")
-            answer_text = (request.user_answer or "") + (request.user_code or "")
-            if not answer_text.strip():
-                return EvaluationResponse(
-                    technicalScore=0,
-                    confidenceScore=0,
-                    aiFeedback="No answer provided. Please provide a verbal or code response.",
-                    idealAnswer=get_ideal_answer(request.role, request.level)
-                )
-            else:
-                answer_length = len(answer_text.split())
-                # Better scoring based on answer length
-                tech_score = min(75, 40 + (answer_length // 20))
-                conf_score = min(80, 50 + (answer_length // 30))
-                return EvaluationResponse(
-                    technicalScore=tech_score,
-                    confidenceScore=conf_score,
-                    aiFeedback="Your answer shows understanding of the topic. To improve: provide more specific examples from your actual experience, discuss trade-offs and decisions you made, and explain your thought process more clearly.",
-                    idealAnswer=get_ideal_answer(request.role, request.level)
-                )
-        response_text=response['response'].strip()
-        try:
-            evaluation_data=json.loads(response_text)
-            
-            evaluation_data['aiFeedback'] = format_dict_field(
-                evaluation_data.get('aiFeedback'), 
-                "Your answer shows understanding. To improve: provide more specific examples from your actual experience, discuss trade-offs and decisions you made, and explain your thought process more clearly."
-            )
-            
-            evaluation_data['idealAnswer'] = format_dict_field(
-                evaluation_data.get('idealAnswer'),
-                get_ideal_answer(request.role, request.level)
-            )
-            
-            return EvaluationResponse(**evaluation_data)
-        except json.JSONDecodeError:
-            import re
-            fixed_text=re.sub(r'[\r\n\t]',' ',response_text)
-            try:
-                evaluation_data=json.loads(fixed_text)
-                
-                evaluation_data['aiFeedback'] = format_dict_field(
-                    evaluation_data.get('aiFeedback'), 
-                    "Your answer shows understanding. To improve: provide more specific examples from your actual experience, discuss trade-offs and decisions you made, and explain your thought process more clearly."
-                )
-                
-                evaluation_data['idealAnswer'] = format_dict_field(
-                    evaluation_data.get('idealAnswer'),
-                    get_ideal_answer(request.role, request.level)
-                )
-                
-                return EvaluationResponse(**evaluation_data)
-            except Exception as parse_error:
-                print(f"Failed to parse evaluation response: {parse_error}. Raw: {response_text[:200]}")
-                return EvaluationResponse(
-                    technicalScore=0,
-                    confidenceScore=0,
-                    aiFeedback="Your submission could not be properly evaluated. Please ensure you provided a complete answer.",
-                    idealAnswer=get_ideal_answer(request.role, request.level)
-                )
 
     except Exception as e:
         print(f"Failed to generate response: {e}")
@@ -892,8 +906,10 @@ async def analyze_video(
 ):
     try:
         # If Whisper is not available, return mock analysis
-        if not WHISPER_MODEL:
+        model = get_whisper_model()
+        if not model:
             return VideoAnalysisResponse(
+
                 transcript="[Audio transcription unavailable]",
                 eyeContact=75,
                 confidence=80,
@@ -936,8 +952,12 @@ async def analyze_video(
 
         # 3. Transcribe with Whisper
         try:
-            result = WHISPER_MODEL.transcribe(audio_path)
+            model = get_whisper_model()
+            if not model:
+                raise Exception("Whisper model unavailable")
+            result = model.transcribe(audio_path)
             transcript = result['text'].strip()
+
             
             # Heuristic scores based on transcription result
             word_count = len(transcript.split())
@@ -1062,95 +1082,208 @@ def random_score(min_val, max_val):
 
         
 
+# Preset guides for common problems to ensure premium quality even without LLM
+PRESET_GUIDES = {
+    "two sum": {
+        "approach": [
+            "Initialize a hash map to store numbers and their indices.",
+            "Iterate through the array once, calculating the complement (target - current_val).",
+            "If the complement exists in the map, return indices. Otherwise, add current number to map."
+        ],
+        "verbalization": "I'll use a one-pass hash map approach to find the complement in O(1) time. As I iterate through the array, I'll check if the value needed to reach the target hash been seen before. If it has, I've found my pair. This yields an O(N) time complexity.",
+        "complexityAnalysis": {"time": "O(N)", "space": "O(N)"}
+    },
+    "binary search": {
+        "approach": [
+            "Maintain two pointers, left and right, spanning the searchable range.",
+            "In each step, calculate the midpoint and compare it to the target.",
+            "Adjust the pointers to halve the search space until target is found or range is empty."
+        ],
+        "verbalization": "I'll use a standard binary search approach with low and high pointers. At each step, I'll calculate the median. If the target is smaller, I'll move my high pointer; if larger, I'll move my low pointer. This effectively cuts the search space in half each iteration.",
+        "complexityAnalysis": {"time": "O(log N)", "space": "O(1)"}
+    },
+    "minimum ascii delete sum for two strings": {
+        "approach": [
+            "Initialize a 2D DP table where dp[i][j] represents the minimum ASCII delete sum for s1[i:] and s2[j:].",
+            "Fill the base cases: if one string is empty, the cost is the sum of ASCII values of the remaining characters in the other string.",
+            "If s1[i] == s2[j], the cost is simply dp[i+1][j+1] (no deletion needed).",
+            "Otherwise, take the minimum of (ASCII(s1[i]) + dp[i+1][j]) and (ASCII(s2[j]) + dp[i][j+1]).",
+            "The result is stored in dp[0][0]."
+        ],
+        "verbalization": "I'll solve this using 2D Dynamic Programming. The state dp[i][j] will store the minimum cost to make the suffixes of both strings equal. When characters match, we move diagonally without cost. When they don't, we branch into two possibilities—deleting from string A or string B—and take the minimum ASCII cost. This results in an O(M*N) solution where M and N are the string lengths.",
+        "complexityAnalysis": {"time": "O(M * N)", "space": "O(M * N)"}
+    },
+    "maximum value at a given index in a bounded array": {
+        "approach": [
+            "Recognize that as the value at the index increases, the total sum of the array increases monotonically, allowing for Binary Search on the answer.",
+            "For a given 'mid' value at index 'index', calculate the minimum possible sum of the array by decreasing values by 1 towards both ends (until 1).",
+            "Use the arithmetic progression sum formula: Sum = n/2 * (a + l) to calculate the left and right side sums in O(1) time.",
+            "If the calculated sum is <= maxSum, the value 'mid' is possible, so try larger values; otherwise, try smaller."
+        ],
+        "verbalization": "I'll use Binary Search on the possible value at the given index. Since the sum is monotonic with respect to this value, we can search between 1 and maxSum. For each middle value, I'll calculate the minimum array sum using the property that values should decrease by 1 as we move away from the index to stay within the bound. This calculation is done in O(1) using the arithmetic progression formula, leading to an overall O(log(maxSum)) time complexity.",
+        "complexityAnalysis": {"time": "O(log(maxSum))", "space": "O(1)"}
+    },
+    "median of two sorted arrays": {
+        "approach": [
+            "Use a binary search approach to find the correct partition point in the smaller of the two arrays.",
+            "Maintain the invariant that the total number of elements on the left side of the partition is (m + n + 1) / 2.",
+            "Ensure that maxLeft1 <= minRight2 and maxLeft2 <= minRight1.",
+            "Handle edge cases where the partition is at the beginning or end of either array."
+        ],
+        "verbalization": "I'll use an optimized binary search approach to partition the two arrays such that all elements on the left are smaller than or equal to elements on the right. By searching on the smaller array, we achieve O(log(min(M,N))) complexity. We look for a partition where the maximum element of the left halves is smaller than the minimum element of the right halves.",
+        "complexityAnalysis": {"time": "O(log(min(M, N)))", "space": "O(1)"}
+    }
+}
+
 @app.post("/generate-guide", response_model=GuideResponse)
 async def generate_guide(request: GuideRequest):
     try:
-        # Mock guide if Ollama is not available
-        if not OLLAMA_AVAILABLE:
+        # Normalized key for partial matching
+        incoming_title = request.title.lower().strip().replace("  ", " ").replace("-", " ")
+        print(f"DEBUG: Processing Guide Request for: '{incoming_title}'")
+        
+        # FUZZY PRESET MATCHING: Check if the title mentions a key problem term
+        matched_preset = None
+        for key, data in PRESET_GUIDES.items():
+            if key in incoming_title or incoming_title in key:
+                print(f"✓ PRESET MATCH FOUND: Using preset for '{key}'")
+                matched_preset = data
+                break
+        
+        if matched_preset:
             return GuideResponse(
-                approach="1. Understand the problem constraints.\n2. Use a hash map for O(n) lookups.\n3. Iterate once through the array.",
-                verbalization="I'll first initialize a hash map to store seen values and their indices. As I iterate through the array, I'll calculate the complement needed for the target sum...",
-                complexityAnalysis={"time": "O(N)", "space": "O(N)"}
+                approach=normalize_approach(matched_preset.get('approach')),
+                verbalization=matched_preset.get('verbalization'),
+                complexityAnalysis=matched_preset.get('complexityAnalysis')
             )
 
-        prompt = f"""
-        Act as a Senior Software Engineer. Provide an interview strategy guide for the following coding problem:
-        Title: {request.title}
-        Description: {request.description}
-        Difficulty: {request.difficulty}
-        Tags: {', '.join(request.tags)}
-
-        Return a JSON object with:
-        1. 'approach': A 3-step conceptual breakdown of the logic.
-        2. 'verbalization': A script on how the candidate should explain this out loud to an interviewer.
-        3. 'complexityAnalysis': {{'time': 'Big O Time', 'space': 'Big O Space'}}
-
-        Return ONLY the JSON.
-        """
-
-        response = ollama.generate(model=OLLAMA_MODEL_NAME, prompt=prompt)
-        content = response['response']
-        
-        # Clean up JSON if LLM adds markdown
-        if "```json" in content:
-            content = content.split("```json")[1].split("```")[0]
-        elif "```" in content:
-            content = content.split("```")[1].split("```")[0]
+        # TRY GEMINI FIRST
+        if GEMINI_AVAILABLE:
+            model_id = 'gemini-1.5-flash'
+            system_instruction = (
+                "You are a Senior Technical Interviewer and Algorithm Expert. "
+                "Your task is to provide a comprehensive, high-quality interview strategy for the given coding problem.\n\n"
+                "EXPECTED OUTPUT (JSON):\n"
+                "1. 'approach': A list of 3-5 clear, logical steps to solve the problem (from brute force to optimal).\n"
+                "2. 'verbalization': A professional 3-sentence script that a candidate would use to explain their strategy to an interviewer.\n"
+                "3. 'complexityAnalysis': An object with 'time' and 'space' keys using Big-O notation. "
+                "CRITICAL: Be extremely precise. For example, DP is usually O(N*M), sorting is O(N log N), etc. "
+                "Do NOT default to O(N) unless it is actually linear."
+            )
             
-        data = json.loads(content)
+            prompt = (
+                f"PROBLEM TITLE: {request.title}\n"
+                f"DESCRIPTION: {request.description}\n"
+                f"CATEGORY/TAGS: {request.tags}\n\n"
+                "Provide the strategy guide now."
+            )
+            
+            result = call_gemini(system_instruction, prompt, is_json=True)
+            if result:
+                try:
+                    data = json.loads(result)
+                    
+                    # Robust type handling to prevent Pydantic crashes
+                    verb = data.get('verbalization')
+                    if isinstance(verb, list):
+                        verb = " ".join(str(v) for v in verb)
+                    elif not isinstance(verb, str):
+                        verb = "I'm analyzing the optimal strategy for this problem."
+                        
+                    comp = data.get('complexityAnalysis')
+                    if not isinstance(comp, dict):
+                        comp = {"time": "O(Analysis Pending)", "space": "O(Analysis Pending)"}
+                        
+                    return GuideResponse(
+                        approach=normalize_approach(data.get('approach')) or ["Strategic analysis in progress."],
+                        verbalization=verb,
+                        complexityAnalysis=comp
+                    )
+                except Exception as e:
+                    print(f"Error parsing Gemini response: {e}")
+
+        # FALLBACK TO OLLAMA
+        if OLLAMA_AVAILABLE:
+            system_instr = (
+                "As an Algorithm Expert, provide a JSON strategy guide for the coding problem below. "
+                "Include 'approach' (steps), 'verbalization' (expert script), and 'complexityAnalysis' (time, space). "
+                "Be technically accurate and precise with Big-O notation."
+            )
+            
+            prompt = f"Problem: {request.title}\nDescription: {request.description}\nTags: {request.tags}"
+            
+            response = ollama.generate(
+                model=OLLAMA_MODEL_NAME, 
+                prompt=prompt,
+                system=system_instr,
+                format="json"
+            )
+            content = response['response'].strip()
+            
+            # Clean up JSON
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0]
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0]
+            content = content.strip()
+                
+            data = json.loads(content)
+            return GuideResponse(
+                approach=normalize_approach(data.get('approach')),
+                verbalization=data.get('verbalization', "Strategy explanation pending."),
+                complexityAnalysis=data.get('complexityAnalysis', {"time": "Check Analysis", "space": "Check Analysis"})
+            )
+        
+        # If both fail, return mock
+        print("⚠ ALL AI ANALYSTS FAILED: Returning Analysis Pending response")
         return GuideResponse(
-            approach=data.get('approach', "Logic breakdown pending."),
-            verbalization=data.get('verbalization', "Explanation script pending."),
-            complexityAnalysis=data.get('complexityAnalysis', {"time": "O(N)", "space": "O(1)"})
+            approach=["Technical analysis pending initialization.", "Try refreshing in a few moments."],
+            verbalization="I'm still analyzing this problem's pattern. I'll provide a walk-through once the technical engine completes its scan.",
+            complexityAnalysis={"time": "O(Analysis Pending)", "space": "O(Analysis Pending)"}
         )
     except Exception as e:
-        print(f"Guide generation failed: {e}")
+        print(f"CRITICAL: Guide generation failed: {e}")
         return GuideResponse(
-            approach="Standard algorithmic approach applies.",
-            verbalization="I will explain the step-by-step logic starting from the brute force and then optimizing for time complexity.",
-            complexityAnalysis={"time": "O(N)", "space": "O(1)"}
+            approach=["AI Service temporarily unavailable."],
+            verbalization="My algorithmic analysis engine is currently scaling. Please try again soon.",
+            complexityAnalysis={"time": "O(Refetch)", "space": "O(Refetch)"}
         )
 
 @app.post("/generate-problem", response_model=ProblemResponse)
 async def generate_problem(request: ProblemRequest):
     try:
-        if not OLLAMA_AVAILABLE:
-            return ProblemResponse(
-                description=f"Detailed description for {request.title}. This problem is frequently asked at {request.company}.",
-                examples=[{"input": "nums = [2,7,11,15], target = 9", "output": "[0,1]", "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."}],
-                testCases=[{"input": "[2,7,11,15]\n9", "expectedOutput": "[0,1]"}],
-                constraints=["2 <= nums.length <= 10^4", "-10^9 <= nums[i] <= 10^9"]
-            )
+        # TRY GEMINI FIRST
+        if GEMINI_AVAILABLE:
+            prompt = f"Generate coding problem for Title: {request.title}, Company: {request.company}. JSON: description, examples (input, output, explanation), testCases (input, expectedOutput as string), constraints."
+            result = call_gemini("Problem Generator", prompt, is_json=True)
+            if result:
+                return ProblemResponse(**json.loads(result))
 
-        prompt = f"""
-        Generate a coding problem description and data for:
-        Title: {request.title}
-        Company Context: {request.company}
-
-        Return a JSON object with:
-        1. 'description': detailed problem statement.
-        2. 'examples': list of {{"input": "...", "output": "...", "explanation": "..."}}
-        3. 'testCases': list of {{"input": "...", "expectedOutput": "..."}}
-        4. 'constraints': list of strings.
-
-        Format 'testCases' input as a single string.
-        Return ONLY the JSON. No other text.
-        """
-
-        response = ollama.generate(model=OLLAMA_MODEL_NAME, prompt=prompt)
-        content = response['response']
-        
-        if "```json" in content:
-            content = content.split("```json")[1].split("```")[0]
-        elif "```" in content:
-            content = content.split("```")[1].split("```")[0]
+        # FALLBACK TO OLLAMA
+        if OLLAMA_AVAILABLE:
+            prompt = f"Generate problem for Title: {request.title}, Company: {request.company}. JSON: description, examples, testCases, constraints."
+            response = ollama.generate(model=OLLAMA_MODEL_NAME, prompt=prompt)
+            content = response['response']
             
-        data = json.loads(content)
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0]
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0]
+                
+            data = json.loads(content)
+            return ProblemResponse(
+                description=data.get('description', f"Solve {request.title}"),
+                examples=data.get('examples', []),
+                testCases=data.get('testCases', []),
+                constraints=data.get('constraints', [])
+            )
+        
+        # If both fail
         return ProblemResponse(
-            description=data.get('description', f"Solve {request.title}"),
-            examples=data.get('examples', []),
-            testCases=data.get('testCases', []),
-            constraints=data.get('constraints', [])
+            description=f"Problem details for {request.title} are currently unavailable.",
+            examples=[],
+            testCases=[],
+            constraints=[]
         )
     except Exception as e:
         print(f"Problem generation failed: {e}")

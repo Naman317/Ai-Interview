@@ -519,6 +519,100 @@ const generateRecommendations = (technical, behavioral) => {
     return recommendations;
 };
 
+// @desc    Get user interview statistics for analytics
+// @route   GET /api/sessions/stats
+// @access  Private
+const getUserStats = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+
+    // 1. Basic Stats Aggregation
+    const stats = await Session.aggregate([
+        { $match: { user: new mongoose.Types.ObjectId(userId), status: 'completed' } },
+        {
+            $group: {
+                _id: null,
+                totalInterviews: { $sum: 1 },
+                avgOverallScore: { $avg: '$overallScore' },
+                avgTechnical: { $avg: '$metrics.avgTechnical' },
+                avgConfidence: { $avg: '$metrics.avgConfidence' },
+                totalDuration: { 
+                    $sum: { 
+                        $divide: [
+                            { $subtract: ["$endTime", "$startTime"] }, 
+                            3600000 // Convert ms to hours
+                        ] 
+                    } 
+                }
+            }
+        }
+    ]);
+
+    // 2. Score History (Last 10 sessions)
+    const history = await Session.find({ user: userId, status: 'completed' })
+        .sort({ endTime: 1 })
+        .limit(10)
+        .select('endTime overallScore role');
+
+    // 3. Category Breakdown (Performance by Role)
+    const roleStats = await Session.aggregate([
+        { $match: { user: new mongoose.Types.ObjectId(userId), status: 'completed' } },
+        {
+            $group: {
+                _id: '$role',
+                avgScore: { $avg: '$overallScore' },
+                count: { $sum: 1 }
+            }
+        },
+        { $sort: { avgScore: -1 } }
+    ]);
+
+    // 4. Activity Streak (Last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const activity = await Session.aggregate([
+        { 
+            $match: { 
+                user: new mongoose.Types.ObjectId(userId), 
+                createdAt: { $gte: sevenDaysAgo } 
+            } 
+        },
+        {
+            $group: {
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                count: { $sum: 1 }
+            }
+        },
+        { $sort: { _id: 1 } }
+    ]);
+
+    const result = {
+        summary: stats[0] || {
+            totalInterviews: 0,
+            avgOverallScore: 0,
+            avgTechnical: 0,
+            avgConfidence: 0,
+            totalDuration: 0
+        },
+        history: history.map(h => ({
+            date: h.endTime,
+            score: h.overallScore,
+            role: h.role
+        })),
+        roleStats: roleStats.map(r => ({
+            role: r._id,
+            avgScore: Math.round(r.avgScore),
+            count: r.count
+        })),
+        activity: activity.map(a => ({
+            date: a._id,
+            count: a.count
+        }))
+    };
+
+    res.status(200).json(result);
+});
+
 export {
     createSession,
     getSessionById,
@@ -528,7 +622,8 @@ export {
     calculateOverallScore,
     deleteSession,
     analyzeVideo,
-    getInterviewReport
+    getInterviewReport,
+    getUserStats
 };
 
 

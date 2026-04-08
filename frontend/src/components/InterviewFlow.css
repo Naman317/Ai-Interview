@@ -2,7 +2,7 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #f8f9fc;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -12,17 +12,19 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    background: rgba(255, 255, 255, 0.95);
+    background: #ffffff;
     padding: 1.5rem;
-    border-radius: 12px;
+    border-radius: 16px;
     margin-bottom: 2rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid #e5e7eb;
 }
 
 .interview-info h1 {
     margin: 0 0 1rem 0;
-    color: #333;
+    color: #1a1a5e;
     font-size: 1.8rem;
+    font-weight: 700;
 }
 
 .interview-progress {
@@ -34,20 +36,21 @@
 .progress-bar {
     width: 300px;
     height: 8px;
-    background: #e0e0e0;
+    background: #e5e7eb;
     border-radius: 4px;
     overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: #2563eb;
     transition: width 0.3s ease;
+    border-radius: 4px;
 }
 
 .interview-progress p {
     font-size: 0.9rem;
-    color: #666;
+    color: #6b7280;
     margin: 0;
 }
 
@@ -60,14 +63,14 @@
 .timer {
     font-size: 2rem;
     font-weight: bold;
-    color: #667eea;
-    font-family: 'Monaco', monospace;
+    color: #2563eb;
+    font-family: 'Inter', 'Monaco', monospace;
     min-width: 100px;
     text-align: center;
 }
 
 .timer.warning {
-    color: #ff6b6b;
+    color: #ef4444;
     animation: pulse 1s infinite;
 }
 
@@ -84,30 +87,33 @@
 }
 
 .question-section {
-    background: rgba(255, 255, 255, 0.95);
+    background: #ffffff;
     padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid #e5e7eb;
 }
 
 .question-text {
     margin: 0 0 1rem 0;
-    color: #333;
+    color: #1a1a5e;
     font-size: 1.5rem;
     line-height: 1.6;
+    font-weight: 600;
 }
 
 .question-type {
     margin: 0;
-    color: #666;
+    color: #6b7280;
     font-size: 1rem;
 }
 
 .answer-section {
-    background: rgba(255, 255, 255, 0.95);
+    background: #ffffff;
     padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid #e5e7eb;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -117,35 +123,39 @@
 .code-editor {
     flex: 1;
     padding: 1rem;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
     font-family: 'Monaco', monospace;
     font-size: 1rem;
     resize: vertical;
     min-height: 300px;
+    background: #f9fafb;
+    color: #1f2937;
 }
 
 .code-editor:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .answer-textarea {
     flex: 1;
     padding: 1rem;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
     font-size: 1rem;
     resize: vertical;
     min-height: 200px;
     font-family: inherit;
+    background: #f9fafb;
+    color: #1f2937;
 }
 
 .answer-textarea:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .voice-section {
@@ -163,11 +173,11 @@
 .btn {
     padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     gap: 0.5rem;
     display: flex;
     align-items: center;
@@ -180,61 +190,63 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: #2563eb;
     color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
 .btn-secondary {
-    background: #f0f0f0;
-    color: #333;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background: #e0e0e0;
+    background: #e5e7eb;
 }
 
 .btn-record {
-    background: #4caf50;
+    background: #16a34a;
     color: white;
     flex: 1;
 }
 
 .btn-record:hover:not(:disabled) {
-    background: #45a049;
-    transform: translateY(-2px);
+    background: #15803d;
+    transform: translateY(-1px);
 }
 
 .btn-stop {
-    background: #f44336;
+    background: #ef4444;
     color: white;
     flex: 1;
 }
 
 .btn-stop:hover {
-    background: #da190b;
-    transform: translateY(-2px);
+    background: #dc2626;
+    transform: translateY(-1px);
 }
 
 .editor-info {
     padding: 1rem;
-    background: #f0f7ff;
-    border-left: 4px solid #667eea;
-    border-radius: 4px;
+    background: #eff6ff;
+    border-left: 4px solid #2563eb;
+    border-radius: 8px;
 }
 
 .editor-info p {
     margin: 0;
-    color: #667eea;
+    color: #2563eb;
     font-size: 0.9rem;
 }
 
 .recording-status {
-    color: #4caf50;
+    color: #16a34a;
     font-weight: 600;
     margin: 0;
 }
@@ -255,14 +267,15 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    color: white;
+    color: #1a1a5e;
+    background: #f8f9fc;
 }
 
 .spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid white;
+    border: 4px solid #e5e7eb;
+    border-top: 4px solid #2563eb;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -273,12 +286,13 @@
 }
 
 .interview-error {
-    background: #f44336;
-    color: white;
+    background: #fef2f2;
+    color: #dc2626;
     padding: 2rem;
-    border-radius: 8px;
+    border-radius: 12px;
     text-align: center;
     margin: 2rem;
+    border: 1px solid #fecaca;
 }
 
 @media (max-width: 768px) {
