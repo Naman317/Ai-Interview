@@ -2,7 +2,6 @@
 
 > An intelligent interview preparation platform powered by AI that helps candidates practice technical interviews with personalized questions, real-time code evaluation, and comprehensive feedback.
 
-![Project Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-ISC-blue)
 ![Node.js](https://img.shields.io/badge/node-%3E%3D16.0.0-green)
 ![Python](https://img.shields.io/badge/python-%3E%3D3.8-blue)
@@ -568,7 +567,7 @@ This project is licensed under the ISC License - see the LICENSE file for detail
 
 ## 📞 Support
 
-For support, email your-email@example.com or open an issue on GitHub.
+For support, email namansharma319@gmail.com or open an issue on GitHub.
 
 ## 🙏 Acknowledgments
 
