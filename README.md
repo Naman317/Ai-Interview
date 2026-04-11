@@ -579,5 +579,5 @@ For support, email namansharma319@gmail.com or open an issue on GitHub.
 ---
 
 <div align="center">
-  Made with ❤️ by the AI Interviewer Team
+  Made with Curiousity by Naman Sharma. 
 </div>
