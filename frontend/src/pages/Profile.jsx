@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { updateProfile, reset, logout } from '../features/auth/authSlice'
 import { getUserStats } from '../features/analytics/analyticsSlice'
-import Sidebar from '../components/Sidebar'
 import RoleIcon from '../components/RoleIcon'
 
 import { ROLES } from '../constants/interview';
@@ -58,9 +57,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="flex bg-surface min-h-screen text-gray-900">
-      <Sidebar />
-      <main className="flex-1 ml-64 p-8">
+    <div className="p-8">
         <header className="mb-10">
           <h1 className="text-3xl font-bold text-primary mb-1">Profile Settings</h1>
           <p className="text-gray-500 text-sm">Manage your personal information and preferences</p>
@@ -166,7 +163,6 @@ export default function Profile() {
             </form>
           </div>
         </div>
-      </main>
     </div>
   );
 }

@@ -3,7 +3,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { getSessions } from '../features/sessions/sessionSlice';
 import { motion } from 'framer-motion';
-import Sidebar from '../components/Sidebar';
 import SessionHistory from '../components/SessionHistory';
 import { startOnboarding } from '../utils/OnboardingTour';
 
@@ -163,10 +162,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-surface text-gray-900 relative font-sans">
-      <Sidebar />
-
-      <main className="flex-1 ml-64 p-8">
+    <div className="p-8">
         <header className="flex justify-between items-center mb-10">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
             <h1 className="text-3xl font-bold text-primary mb-1">Dashboard</h1>
@@ -279,7 +275,6 @@ export default function Dashboard() {
             <SessionHistory sessions={sessions} />
           )}
         </motion.section>
-      </main>
     </div>
   );
 }

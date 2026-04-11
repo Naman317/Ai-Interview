@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../features/sessions/sessionSlice';
 import { toast } from 'react-toastify';
-import Sidebar from '../components/Sidebar';
 import RoleIcon from '../components/RoleIcon';
 import { motion, AnimatePresence } from 'framer-motion';
 import useSocket from '../hooks/useSocket';
@@ -142,10 +141,8 @@ export default function NewInterview() {
     }
 
     return (
-        <div className="flex min-h-screen bg-surface text-gray-900 font-sans">
-            <Sidebar />
-            <main className="flex-1 ml-64 p-8">
-                <div className="max-w-4xl mx-auto pt-10">
+        <div className="p-8">
+            <div className="max-w-4xl mx-auto pt-10">
                     {/* Progress Header */}
                     <header className="mb-12">
                         <div className="flex items-center justify-between mb-8 max-w-2xl mx-auto">
@@ -375,8 +372,7 @@ export default function NewInterview() {
                             )}
                         </AnimatePresence>
                     </form>
-                </div>
-            </main>
+            </div>
         </div>
     );
 }

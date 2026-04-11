@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
-import Sidebar from '../components/Sidebar';
 import SessionHistory from '../components/SessionHistory';
 import { getSessions } from '../features/sessions/sessionSlice';
 
@@ -23,10 +22,7 @@ const History = () => {
     });
 
     return (
-        <div className="flex min-h-screen bg-surface">
-            <Sidebar />
-
-            <main className="flex-1 ml-64 p-8">
+        <div className="p-8">
                 <header className="mb-10">
                     <h1 className="text-3xl font-bold text-primary mb-1">Interview History</h1>
                     <p className="text-gray-500 text-sm">Review and manage all your past interview sessions</p>
@@ -79,7 +75,6 @@ const History = () => {
                         </div>
                     )}
                 </div>
-            </main>
         </div>
     );
 };

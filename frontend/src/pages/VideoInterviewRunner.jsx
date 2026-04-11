@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import WebRTCVideoRecorder from '../components/WebRTCVideoRecorder';
 import InterviewReport from '../components/InterviewReport';
-import Sidebar from '../components/Sidebar';
 import { speakQuestion, stopSpeaking } from '../utils/tts';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -102,110 +101,127 @@ export default function VideoInterviewRunner() {
 
   if (loading) {
     return (
-      <div className="flex bg-black min-h-screen text-white">
-        <Sidebar />
-        <main className="flex-1 ml-64 flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-600 border-white/10" />
-        </main>
+      <div className="flex flex-col items-center justify-center min-h-[80vh] bg-surface">
+        <div className="w-12 h-12 border-4 border-gray-200 border-t-accent rounded-full animate-spin mb-4 shadow-sm"></div>
+        <p className="text-gray-500 font-medium">Preparing recording environment...</p>
       </div>
     );
   }
 
   if (showReport) {
     return (
-      <div className="flex bg-black min-h-screen text-white">
-        <Sidebar />
-        <main className="flex-1 ml-64 p-8 overflow-auto">
-          <div className="max-w-4xl mx-auto">
+      <div className="p-8 overflow-auto bg-surface min-h-[80vh] flex flex-col items-center">
+        <div className="max-w-4xl w-full">
             <InterviewReport
               sessionId={sessionId}
               onClose={() => navigate('/dashboard')}
             />
-          </div>
-        </main>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex bg-black min-h-screen text-white">
-      <Sidebar />
-
-      <main className="flex-1 ml-64 p-8 flex flex-col overflow-hidden">
+    <div className="max-w-6xl mx-auto p-8 font-sans space-y-8">
         {/* Header */}
-        <header className="mb-8 p-6 bg-slate-900/30 rounded-3xl border border-slate-800/50">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-3xl font-black mb-1">Video Interview</h1>
-              <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">
-                {session.role} • {session.level} Level
-              </p>
-            </div>
-            <button
-              onClick={() => setAiVoiceEnabled(!aiVoiceEnabled)}
-              className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-widest border transition-all ${aiVoiceEnabled ? 'bg-blue-600 border-blue-600 text-white' : 'bg-slate-900 border-slate-800 text-slate-500'
-                }`}
-            >
-              {aiVoiceEnabled ? 'AI Voice ON' : 'AI Voice OFF'}
-            </button>
-          </div>
+        <header className="bg-white border border-gray-200 p-8 rounded-3xl shadow-card relative overflow-hidden">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+                <div className="space-y-4 flex-1 w-full">
+                    <div className="flex items-center gap-2">
+                        <span className="text-accent font-semibold text-xs uppercase tracking-widest">Live Video Session</span>
+                        <span className="text-gray-300">•</span>
+                        <span className="text-gray-500 text-xs font-medium uppercase tracking-widest">{session.level} Level</span>
+                    </div>
+                    <h1 className="text-3xl font-bold text-primary">{session.role} Interview</h1>
+                    
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                            <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
+                            <span>{Math.round(progress)}% Complete</span>
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                            <motion.div
+                                animate={{ width: `${progress}%` }}
+                                className="bg-accent h-full shadow-[0_0_10px_rgba(37,99,235,0.3)]"
+                            />
+                        </div>
+                    </div>
+                </div>
 
-          <div className="space-y-2">
-            <div className="flex justify-between text-[10px] font-black text-slate-600 uppercase tracking-widest">
-              <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
-              <span>{Math.round(progress)}% Complete</span>
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => setAiVoiceEnabled(!aiVoiceEnabled)}
+                        className={`px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest border transition-all ${
+                            aiVoiceEnabled 
+                            ? 'bg-accent border-accent text-white shadow-lg' 
+                            : 'bg-white border-gray-200 text-gray-500 hover:text-accent'
+                        }`}
+                    >
+                        {aiVoiceEnabled ? 'AI Voice Active' : 'AI Voice Muted'}
+                    </button>
+                    <button
+                        onClick={handleFinishInterview}
+                        className="px-6 py-4 rounded-xl bg-red-50 text-red-600 border border-red-100 font-black text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                    >
+                        Finish Early
+                    </button>
+                </div>
             </div>
-            <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-              <motion.div
-                animate={{ width: `${progress}%` }}
-                className="bg-blue-600 h-full shadow-[0_0_10px_rgba(37,99,235,0.5)]"
-              />
-            </div>
-          </div>
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-8 overflow-hidden min-h-0">
-          <div className="flex flex-col gap-6 overflow-auto pr-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <div className="space-y-6">
             {/* Question Card */}
             <motion.div
               key={currentQuestionIndex}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-slate-900/50 border border-slate-800 p-10 rounded-[2.5rem] relative overflow-hidden"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white border border-gray-100 p-10 rounded-[2.5rem] shadow-card relative overflow-hidden group min-h-[250px] flex flex-col justify-center"
             >
-              <span className="text-blue-500 font-black text-xs uppercase tracking-[0.2em] mb-4 block">Question Context</span>
-              <h2 className="text-2xl font-bold leading-relaxed">{currentQuestionText}</h2>
+              <div className="absolute top-0 right-0 p-8 opacity-[0.03] select-none pointer-events-none group-hover:opacity-[0.05] transition-opacity">
+                <span className="text-9xl font-black text-gray-900 leading-none">{currentQuestionIndex + 1}</span>
+              </div>
+              <div className="relative z-10">
+                <span className="text-accent font-black text-[10px] uppercase tracking-[0.2em] mb-4 block">Question Context</span>
+                <h2 className="text-2xl font-bold text-primary leading-relaxed">{currentQuestionText}</h2>
+              </div>
             </motion.div>
 
             {/* Navigation / Actions */}
-            <div className="mt-auto flex gap-4">
+            <div className="flex gap-4 p-2">
               <button
                 onClick={handleSkipQuestion}
                 disabled={currentQuestionIndex >= questions.length - 1}
-                className="flex-1 py-4 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all disabled:opacity-20"
+                className="flex-1 py-5 bg-white border border-gray-200 text-gray-400 hover:text-gray-900 hover:border-gray-300 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all disabled:opacity-30 shadow-sm"
               >
                 Skip Question
               </button>
-              <button
-                onClick={handleFinishInterview}
-                className="flex-1 py-4 bg-red-600/10 border border-red-600/20 text-red-500 hover:bg-red-600 hover:text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-red-600/5"
-              >
-                Finish Early
-              </button>
+              <div className="flex-[2] flex items-center justify-center p-4 bg-blue-50/50 border border-blue-100 rounded-2xl">
+                 <p className="text-[10px] font-black text-accent uppercase tracking-[0.2em] leading-relaxed text-center">
+                    Record your video response. 🎙️
+                 </p>
+              </div>
             </div>
           </div>
 
-          <div className="bg-slate-900/50 border border-slate-800 rounded-[2.5rem] p-6 flex flex-col min-h-[400px]">
-            <WebRTCVideoRecorder
-              question={currentQuestionText}
-              sessionId={sessionId}
-              onSubmit={handleVideoSubmit}
-              maxDuration={180}
-            />
+          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-card flex flex-col min-h-[500px] relative">
+            <div className="absolute top-6 left-6 flex items-center gap-2 z-10">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Live Studio</span>
+            </div>
+            
+            <div className="flex-1 rounded-2xl overflow-hidden bg-gray-50 border border-gray-200 shadow-inner">
+                <WebRTCVideoRecorder
+                  question={currentQuestionText}
+                  sessionId={sessionId}
+                  onSubmit={handleVideoSubmit}
+                  maxDuration={180}
+                />
+            </div>
           </div>
         </div>
-      </main>
     </div>
   );
 }
+

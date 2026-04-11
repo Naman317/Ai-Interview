@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import api from '../utils/api';
 import { motion } from 'framer-motion';
-import './InterviewFlow.css';
 
 export default function InterviewFlow() {
     const { sessionId } = useParams();
@@ -26,7 +25,7 @@ export default function InterviewFlow() {
     useEffect(() => {
         const loadSession = async () => {
             try {
-                const response = await api.get(`/api/interview/${sessionId}`);
+                const response = await api.get(`/api/sessions/${sessionId}`);
                 setSession(response.data);
                 setLoading(false);
             } catch (error) {
@@ -93,7 +92,7 @@ export default function InterviewFlow() {
             setEvaluating(true);
 
             // Submit answer to backend
-            await api.post('/api/interview/submit-answer', {
+            await api.post('/api/sessions/submit-answer', {
                 sessionId,
                 questionIndex: currentQuestionIndex,
                 answerText: answer,
@@ -101,12 +100,8 @@ export default function InterviewFlow() {
                 audioPath: recordedAnswer
             });
 
-            // Evaluate answer
-            const evaluationResponse = await api.post('/api/interview/evaluate-answer', {
-                sessionId,
-                questionIndex: currentQuestionIndex
-            });
-
+            // Evaluation is now handled by the backend during session processing
+            
             // Move to next question or complete
             if (currentQuestionIndex < session.questions.length - 1) {
                 setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -116,10 +111,8 @@ export default function InterviewFlow() {
                 setTimeLeft(180);
             } else {
                 // All questions answered
-                const completeResponse = await api.post('/api/interview/complete', {
-                    sessionId
-                });
-                navigate(`/feedback/${completeResponse.data.feedbackId}`);
+                await api.post(`/api/sessions/${sessionId}/end`);
+                navigate(`/review/${sessionId}`);
             }
 
             setEvaluating(false);
@@ -132,15 +125,22 @@ export default function InterviewFlow() {
 
     if (loading) {
         return (
-            <div className="interview-loading">
-                <div className="spinner"></div>
-                <p>Loading interview...</p>
+            <div className="flex flex-col items-center justify-center min-h-[80vh] bg-surface">
+                <div className="w-12 h-12 border-4 border-gray-200 border-t-accent rounded-full animate-spin mb-4 shadow-sm"></div>
+                <p className="text-gray-500 font-medium animat-pulse">Initializing interview environment...</p>
             </div>
         );
     }
 
     if (!session) {
-        return <div className="interview-error">Failed to load interview session</div>;
+        return (
+            <div className="flex bg-surface min-h-[80vh] items-center justify-center p-8">
+                <div className="bg-white border border-red-100 p-8 rounded-2xl text-center shadow-card max-w-md">
+                    <p className="text-red-600 font-bold text-lg mb-2">Error Occurred</p>
+                    <p className="text-gray-500 text-sm">Failed to load interview session. Please return to the dashboard and try again.</p>
+                </div>
+            </div>
+        );
     }
 
     const currentQuestion = session.questions[currentQuestionIndex];
@@ -149,112 +149,167 @@ export default function InterviewFlow() {
     const seconds = timeLeft % 60;
 
     return (
-        <div className="interview-container">
+        <div className="max-w-5xl mx-auto p-8 font-sans">
             {/* Header */}
-            <div className="interview-header">
-                <div className="interview-info">
-                    <h1>Interview: {session.role} - {session.level}</h1>
-                    <div className="interview-progress">
-                        <div className="progress-bar">
-                            <div 
-                                className="progress-fill" 
-                                style={{ width: `${progressPercent}%` }}
-                            ></div>
+            <header className="bg-white border border-gray-200 p-8 rounded-2xl mb-8 shadow-card overflow-hidden relative">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+                    <div className="space-y-4 flex-1 w-full">
+                        <div className="flex items-center gap-2">
+                             <span className="text-accent font-semibold text-xs uppercase tracking-widest">Live Session</span>
+                             <span className="text-gray-300">•</span>
+                             <span className="text-gray-500 text-xs font-medium uppercase tracking-widest">{session.level} Level</span>
                         </div>
-                        <p>Question {currentQuestionIndex + 1} of {session.questions.length}</p>
+                        <h1 className="text-3xl font-bold text-primary">{session.role} Interview</h1>
+                        
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                <span>Progress: {Math.round(progressPercent)}%</span>
+                                <span>Question {currentQuestionIndex + 1} of {session.questions.length}</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <motion.div 
+                                    className="h-full bg-accent shadow-[0_0_10px_rgba(37,99,235,0.3)]" 
+                                    layoutId="progress-bar"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progressPercent}%` }}
+                                    transition={{ duration: 0.5 }}
+                                ></motion.div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="flex flex-col items-center bg-gray-50 border border-gray-100 p-6 rounded-2xl min-w-[140px] shadow-sm">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Time Remaining</span>
+                        <div className={`text-4xl font-mono font-bold tracking-tighter ${timeLeft < 60 ? 'text-red-500 animate-pulse' : 'text-accent'}`}>
+                            {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+                        </div>
                     </div>
                 </div>
-                <div className="interview-timer">
-                    <div className={`timer ${timeLeft < 60 ? 'warning' : ''}`}>
-                        {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
-                    </div>
-                </div>
-            </div>
+            </header>
 
             {/* Main Content */}
             <motion.div 
-                className="interview-content"
+                className="space-y-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
             >
                 {/* Question Display */}
-                <div className="question-section">
-                    <h2 className="question-text">{currentQuestion.questionText}</h2>
-                    <p className="question-type">
-                        Type: {currentQuestion.questionType === 'coding' ? '💻 Coding' : '🎤 Oral'}
-                    </p>
+                <div className="bg-white p-10 rounded-2xl shadow-card border border-gray-100 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] select-none pointer-events-none group-hover:opacity-[0.05] transition-opacity">
+                         <span className="text-9xl font-black text-gray-900 leading-none">{currentQuestionIndex + 1}</span>
+                    </div>
+                    <div className="relative z-10">
+                        <span className="text-accent font-black text-[10px] uppercase tracking-[0.2em] block mb-4">Interviewer Asks:</span>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-primary leading-snug">
+                            {typeof currentQuestion === 'string' ? currentQuestion : currentQuestion.questionText}
+                        </h2>
+                        <div className="mt-6 flex items-center gap-3">
+                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-colors ${
+                                currentQuestion.questionType === 'coding' 
+                                ? 'bg-indigo-50 text-indigo-600 border-indigo-100' 
+                                : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                            }`}>
+                                {currentQuestion.questionType === 'coding' ? '💻 Coding Performance' : '🎤 Oral Discussion'}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Answer Input */}
-                <div className="answer-section">
+                <div className="bg-white p-10 rounded-2xl shadow-card border border-gray-100">
                     {currentQuestion.questionType === 'coding' ? (
-                        <>
-                            <textarea
-                                value={code}
-                                onChange={(e) => setCode(e.target.value)}
-                                placeholder="Write your code here..."
-                                className="code-editor"
-                            />
-                            <div className="editor-info">
-                                <p>💡 Tip: Write clean, well-documented code</p>
+                        <div className="space-y-6">
+                            <div className="relative">
+                                <textarea
+                                    value={code}
+                                    onChange={(e) => setCode(e.target.value)}
+                                    placeholder="Implement your solution here..."
+                                    className="w-full min-h-[400px] p-8 bg-gray-900 text-gray-100 rounded-2xl font-mono text-sm leading-relaxed focus:ring-4 focus:ring-indigo-500/10 focus:outline-none border-b-8 border-indigo-900/50 shadow-inner"
+                                />
+                                <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-md rounded text-white/40 text-[10px] font-mono tracking-widest border border-white/5 uppercase">
+                                    Source
+                                </div>
                             </div>
-                        </>
+                            <div className="flex items-center gap-3 p-5 bg-indigo-50 border border-indigo-100 rounded-xl">
+                                <span className="text-lg">💡</span>
+                                <p className="text-indigo-600 font-medium text-xs leading-relaxed">
+                                    Tip: Focus on time complexity and handle edge cases appropriately.
+                                </p>
+                            </div>
+                        </div>
                     ) : (
-                        <>
-                            <div className="voice-section">
+                        <div className="space-y-8">
+                            <div className="relative">
                                 <textarea
                                     value={answer}
                                     onChange={(e) => setAnswer(e.target.value)}
-                                    placeholder="Type or record your answer here..."
-                                    className="answer-textarea"
+                                    placeholder="Type your response here, or use the microphone to dictate..."
+                                    className="w-full min-h-[250px] p-8 bg-gray-50 border border-gray-100 rounded-2xl focus:border-accent focus:ring-4 focus:ring-accent/5 focus:outline-none transition-all text-gray-700 leading-relaxed text-lg italic"
                                 />
-                                
-                                <div className="recording-controls">
-                                    {!recording ? (
-                                        <button 
-                                            onClick={startRecording}
-                                            className="btn btn-record"
-                                            disabled={evaluating}
-                                        >
-                                            🎤 Start Recording
-                                        </button>
-                                    ) : (
-                                        <button 
-                                            onClick={stopRecording}
-                                            className="btn btn-stop"
-                                        >
-                                            ⏹️ Stop Recording
-                                        </button>
-                                    )}
-                                    {recordedAnswer && (
-                                        <p className="recording-status">✓ Answer recorded</p>
-                                    )}
-                                </div>
                             </div>
-                        </>
+                            
+                            <div className="flex flex-col sm:flex-row items-center gap-6 p-2">
+                                {!recording ? (
+                                    <button 
+                                        onClick={startRecording}
+                                        className="w-full sm:flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs uppercase tracking-[0.2em] transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                                        disabled={evaluating}
+                                    >
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                        </svg>
+                                        Start Recording
+                                    </button>
+                                ) : (
+                                    <button 
+                                        onClick={stopRecording}
+                                        className="w-full sm:flex-1 py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-xl text-xs uppercase tracking-[0.2em] transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-3 animate-pulse"
+                                    >
+                                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                                        Stop Recording
+                                    </button>
+                                )}
+                                
+                                {recordedAnswer && (
+                                    <div className="flex items-center gap-2 px-6 py-2 bg-emerald-50 border border-emerald-100 rounded-full">
+                                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"></div>
+                                        <span className="text-emerald-600 font-bold text-xs uppercase tracking-widest">Captured</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     )}
                 </div>
 
                 {/* Action Buttons */}
-                <div className="action-buttons">
+                <div className="flex flex-col sm:flex-row gap-4 justify-between items-center pt-10">
                     <button 
                         onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
-                        className="btn btn-secondary"
+                        className="w-full sm:w-auto px-8 py-4 bg-white border border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-gray-50 hover:border-gray-300 rounded-2xl font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed group flex items-center justify-center gap-2"
                         disabled={currentQuestionIndex === 0 || evaluating}
                     >
-                        ← Previous
+                        <span className="group-hover:-translate-x-1 transition-transform">←</span>
+                        Previous
                     </button>
 
                     <button 
                         onClick={submitAnswer}
-                        className="btn btn-primary"
+                        className="w-full sm:w-auto px-12 py-5 bg-accent hover:bg-blue-700 text-white font-black rounded-2xl uppercase tracking-[0.3em] text-xs transition-all shadow-2xl shadow-accent/20 disabled:opacity-50 flex items-center justify-center gap-3 group"
                         disabled={evaluating || (!answer && !code && !recordedAnswer)}
                     >
-                        {evaluating ? '⏳ Evaluating...' : (
-                            currentQuestionIndex === session.questions.length - 1 
-                                ? 'Finish & Get Feedback' 
-                                : 'Next Question →'
+                        {evaluating ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                                Processing...
+                            </>
+                        ) : (
+                            <>
+                                {currentQuestionIndex === session.questions.length - 1 
+                                    ? 'Complete Session' 
+                                    : 'Next Question'}
+                                <span className="group-hover:translate-x-1 transition-transform">→</span>
+                            </>
                         )}
                     </button>
                 </div>
@@ -262,3 +317,4 @@ export default function InterviewFlow() {
         </div>
     );
 }
+

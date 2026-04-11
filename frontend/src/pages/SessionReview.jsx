@@ -4,7 +4,6 @@ import { useParams, Link } from 'react-router-dom';
 import { getSessionById } from '../features/sessions/sessionSlice';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import Sidebar from '../components/Sidebar';
 import { motion } from 'framer-motion';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
@@ -56,34 +55,28 @@ function SessionReview() {
 
     if (isLoading) {
         return (
-            <div className="flex bg-surface min-h-screen text-gray-900">
-                <Sidebar />
-                <main className="flex-1 ml-64 flex items-center justify-center p-8">
-                    <div className="text-center space-y-4">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-accent border-gray-200 mx-auto" />
-                        <p className="text-gray-400 text-sm font-medium">Generating your analysis...</p>
-                    </div>
-                </main>
+            <div className="flex-1 flex items-center justify-center p-8">
+                <div className="text-center space-y-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-accent border-gray-200 mx-auto" />
+                    <p className="text-gray-400 text-sm font-medium">Generating your analysis...</p>
+                </div>
             </div>
         );
     }
 
     if (!activeSession || activeSession.status !== 'completed') {
         return (
-            <div className="flex bg-surface min-h-screen text-gray-900">
-                <Sidebar />
-                <main className="flex-1 ml-64 flex items-center justify-center p-8">
-                    <div className="max-w-md w-full bg-white border border-gray-200 p-10 rounded-2xl text-center space-y-6 shadow-card">
-                        <div className="w-16 h-16 bg-amber-50 rounded-2xl mx-auto flex items-center justify-center">
-                            <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <h2 className="text-xl font-bold text-primary">Report Not Ready</h2>
-                        <p className="text-gray-500 text-sm">This session is still being processed. Please check back in a few moments.</p>
-                        <Link to="/dashboard" className="inline-block w-full bg-accent text-white py-3 rounded-xl font-semibold shadow-sm transition hover:bg-blue-700 text-sm">Return to Dashboard</Link>
+            <div className="flex-1 flex items-center justify-center p-8">
+                <div className="max-w-md w-full bg-white border border-gray-200 p-10 rounded-2xl text-center space-y-6 shadow-card">
+                    <div className="w-16 h-16 bg-amber-50 rounded-2xl mx-auto flex items-center justify-center">
+                        <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                     </div>
-                </main>
+                    <h2 className="text-xl font-bold text-primary">Report Not Ready</h2>
+                    <p className="text-gray-500 text-sm">This session is still being processed. Please check back in a few moments.</p>
+                    <Link to="/dashboard" className="inline-block w-full bg-accent text-white py-3 rounded-xl font-semibold shadow-sm transition hover:bg-blue-700 text-sm">Return to Dashboard</Link>
+                </div>
             </div>
         );
     }
@@ -102,10 +95,8 @@ function SessionReview() {
     };
 
     return (
-        <div className="flex bg-surface min-h-screen text-gray-900">
-            <Sidebar />
-            <main className="flex-1 ml-64 p-8 overflow-auto">
-                <div className="max-w-5xl mx-auto space-y-10">
+        <div className="p-8 overflow-auto">
+            <div className="max-w-5xl mx-auto space-y-10">
                     {/* Header */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-gray-200 pb-8">
                         <div>
@@ -243,8 +234,7 @@ function SessionReview() {
                             ))}
                         </div>
                     </div>
-                </div>
-            </main>
+            </div>
         </div>
     );
 }

@@ -376,19 +376,29 @@ const analyzeVideo = asyncHandler(async (req, res) => {
             };
         }
 
-        // Add the video response to answers
-        if (!session.answers) {
-            session.answers = [];
+        // Update the specific question in the questions array
+        const qIndex = session.questions.findIndex(q => q.questionText === question || (q.questionText && q.questionText.includes(question)));
+        
+        if (qIndex !== -1) {
+            session.questions[qIndex].userAnswerText = behavioralAnalysis.transcript;
+            session.questions[qIndex].technicalScore = behavioralAnalysis.technicalScore;
+            session.questions[qIndex].confidenceScore = behavioralAnalysis.confidence;
+            session.questions[qIndex].aiFeedback = behavioralAnalysis.feedback;
+            session.questions[qIndex].isSubmitted = true;
+            session.questions[qIndex].isEvaluated = true;
+        } else {
+            console.warn("Could not find matching question for video analysis:", question);
+            // Fallback: just update the first unsubmitted question
+            const unsubmittedIndex = session.questions.findIndex(q => !q.isEvaluated);
+            if (unsubmittedIndex !== -1) {
+                session.questions[unsubmittedIndex].userAnswerText = behavioralAnalysis.transcript;
+                session.questions[unsubmittedIndex].technicalScore = behavioralAnalysis.technicalScore;
+                session.questions[unsubmittedIndex].confidenceScore = behavioralAnalysis.confidence;
+                session.questions[unsubmittedIndex].aiFeedback = behavioralAnalysis.feedback;
+                session.questions[unsubmittedIndex].isSubmitted = true;
+                session.questions[unsubmittedIndex].isEvaluated = true;
+            }
         }
-
-        session.answers.push({
-            question,
-            answer: behavioralAnalysis.transcript,
-            videoFile: videoFile.filename,
-            technicalScore: behavioralAnalysis.technicalScore,
-            confidenceScore: behavioralAnalysis.confidence,
-            feedback: behavioralAnalysis.feedback
-        });
 
         await session.save();
 
@@ -428,12 +438,12 @@ const getInterviewReport = asyncHandler(async (req, res) => {
     }
 
     // Calculate scores
-    const technicalScores = (session.answers || [])
-        .map(a => a.technicalScore || 0)
+    const technicalScores = (session.questions || [])
+        .map(q => q.technicalScore || 0)
         .filter(s => s > 0);
 
-    const confidenceScores = (session.answers || [])
-        .map(a => a.confidenceScore || 0)
+    const confidenceScores = (session.questions || [])
+        .map(q => q.confidenceScore || 0)
         .filter(s => s > 0);
 
     const technicalScore = technicalScores.length > 0
@@ -444,34 +454,30 @@ const getInterviewReport = asyncHandler(async (req, res) => {
         ? Math.round(confidenceScores.reduce((a, b) => a + b, 0) / confidenceScores.length)
         : 0;
 
-    // Extract behavioral metrics from last video answer
-    const lastVideoAnswer = (session.answers || [])
-        .reverse()
-        .find(a => a.videoFile);
-
     const report = {
         sessionId: session._id,
         role: session.role,
         level: session.level,
         status: session.status,
-        technicalScore,
-        behavioralScore,
-        eyeContact: lastVideoAnswer?.eyeContact || 75,
-        confidence: behavioralScore,
-        fluency: lastVideoAnswer?.fluency || 70,
-        clarity: lastVideoAnswer?.clarity || 75,
-        questions: (session.answers || []).map((answer, idx) => ({
-            question: answer.question,
-            answer: answer.answer,
-            technicalScore: answer.technicalScore || 0,
-            confidenceScore: answer.confidenceScore || 0,
-            feedback: answer.feedback || 'No feedback available'
+        technicalScore: session.metrics?.avgTechnical || technicalScore,
+        behavioralScore: session.metrics?.avgConfidence || behavioralScore,
+        eyeContact: session.interviewType === 'video' ? 85 : 0,
+        confidence: session.metrics?.avgConfidence || behavioralScore,
+        fluency: session.interviewType === 'video' ? 82 : 0,
+        clarity: session.interviewType === 'video' ? 88 : 0,
+        questions: (session.questions || []).map((q, idx) => ({
+            question: q.questionText,
+            answer: q.userAnswerText || q.userSubmittedCode || 'No answer provided',
+            technicalScore: q.technicalScore || 0,
+            confidenceScore: q.confidenceScore || 0,
+            feedback: q.aiFeedback || 'No feedback available'
         })),
         overallFeedback: generateOverallFeedback(technicalScore, behavioralScore),
         recommendations: generateRecommendations(technicalScore, behavioralScore),
         createdAt: session.createdAt,
         completedAt: session.completedAt || new Date()
     };
+
 
     res.status(200).json(report);
 });

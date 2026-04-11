@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserStats } from '../features/analytics/analyticsSlice';
-import Sidebar from '../components/Sidebar';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -80,10 +79,8 @@ const Analytics = () => {
   const summary = stats?.summary || {};
 
   return (
-    <div className="flex h-screen bg-surface">
-      <Sidebar />
-
-      <main className="flex-1 ml-64 overflow-auto">
+    <div className="h-full bg-surface">
+      <main className="overflow-auto">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-40 p-6">
           <div>

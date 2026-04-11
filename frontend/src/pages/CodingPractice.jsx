@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../utils/api';
-import Sidebar from '../components/Sidebar';
 import { toast } from 'react-toastify';
 import RoleIcon from '../components/RoleIcon';
 
@@ -187,9 +186,7 @@ export default function CodingPractice() {
   ];
 
   return (
-    <div className="flex bg-surface min-h-screen text-gray-900">
-      <Sidebar />
-      <main className="flex-1 ml-64 p-8">
+    <div className="p-8">
         <header className="mb-10">
           <h1 className="text-3xl font-bold text-primary mb-1">Practice Questions</h1>
           <p className="text-gray-500 text-sm">
@@ -516,7 +513,6 @@ export default function CodingPractice() {
             </div>
           )}
         </AnimatePresence>
-      </main>
     </div>
   );
 }

@@ -4,7 +4,6 @@ import { logout, updateProfile } from '../features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
-import Sidebar from '../components/Sidebar';
 
 const Settings = () => {
   const dispatch = useDispatch();
@@ -57,10 +56,8 @@ const Settings = () => {
   };
 
   return (
-    <div className="flex h-screen bg-surface">
-      <Sidebar />
-
-      <main className="flex-1 ml-64 overflow-auto">
+    <div className="h-full bg-surface">
+      <main className="overflow-auto">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-40 p-6">
           <div>

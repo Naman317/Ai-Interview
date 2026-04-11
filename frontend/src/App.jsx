@@ -1,26 +1,30 @@
-import React, { useState, useEffect } from 'react'
+import React, { Suspense, useState, useEffect, lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import useSocket from './hooks/useSocket';
 import { ToastContainer } from 'react-toastify';
-import { useSelector } from 'react-redux';
+import ErrorBoundary from './components/ErrorBoundary';
+import DashboardLayout from './components/DashboardLayout';
+import { PageSkeleton } from './components/SkeletonLoader';
 
-// Import pages
+// Eagerly loaded (critical path)
 import Login from './pages/Login';
 import Register from './pages/Register';
 import PrivateRoute from './components/PrivateRoute';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import NewInterview from './pages/NewInterview';
-import InterviewRunner from './pages/InterviewRunner';
-import VideoInterviewRunner from './pages/VideoInterviewRunner';
-import SessionReview from './pages/SessionReview';
-import NotFound from './pages/NotFound';
 import LandingPage from './pages/LandingPage';
-import CodingPractice from './pages/CodingPractice';
-import SheetDetails from './pages/SheetDetails';
-import Analytics from './pages/Analytics';
-import Settings from './pages/Settings';
-import History from './pages/History';
+import NotFound from './pages/NotFound';
+
+// Lazy loaded pages (code-split for smaller initial bundle)
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const NewInterview = lazy(() => import('./pages/NewInterview'));
+const Profile = lazy(() => import('./pages/Profile'));
+const InterviewRunner = lazy(() => import('./pages/InterviewRunner'));
+const VideoInterviewRunner = lazy(() => import('./pages/VideoInterviewRunner'));
+const SessionReview = lazy(() => import('./pages/SessionReview'));
+const CodingPractice = lazy(() => import('./pages/CodingPractice'));
+const SheetDetails = lazy(() => import('./pages/SheetDetails'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const Settings = lazy(() => import('./pages/Settings'));
+const History = lazy(() => import('./pages/History'));
 
 const App = () => {
   const [error, setError] = useState(null);
@@ -49,30 +53,39 @@ const App = () => {
   }
 
   return (
-    <div className='min-h-screen bg-white'>
-      <Routes>
-        <Route path='/landing' element={<LandingPage />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/register' element={<Register />} />
-        <Route path='/' element={<PrivateRoute />}>
-          <Route path='/' element={<Navigate to="/dashboard" replace />} />
-          <Route path='/dashboard' element={<Dashboard />} />
-          <Route path='/new-interview' element={<NewInterview />} />
-          <Route path='/profile' element={<Profile />} />
-          <Route path='/coding' element={<CodingPractice />} />
-          <Route path='/sheets/:id' element={<SheetDetails />} />
-          <Route path='/analytics' element={<Analytics />} />
-          <Route path='/settings' element={<Settings />} />
-          <Route path='/history' element={<History />} />
-          <Route path='/interview/:sessionId' element={<InterviewRunner />} />
-          <Route path='/video-interview/:sessionId' element={<VideoInterviewRunner />} />
-          <Route path="/review/:sessionId" element={<SessionReview />} />
-        </Route>
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+    <ErrorBoundary>
+      <div className='min-h-screen bg-white'>
+        <Suspense fallback={<PageSkeleton />}>
+          <Routes>
+            <Route path='/landing' element={<LandingPage />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/register' element={<Register />} />
 
-      <ToastContainer theme="light" position='top-right' autoClose={3000} />
-    </div>
+            {/* All authenticated routes use DashboardLayout (persistent Sidebar) */}
+            <Route path='/' element={<PrivateRoute />}>
+              <Route element={<DashboardLayout />}>
+                <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route path='dashboard' element={<Dashboard />} />
+                <Route path='new-interview' element={<NewInterview />} />
+                <Route path='profile' element={<Profile />} />
+                <Route path='coding' element={<CodingPractice />} />
+                <Route path='sheets/:id' element={<SheetDetails />} />
+                <Route path='analytics' element={<Analytics />} />
+                <Route path='settings' element={<Settings />} />
+                <Route path='history' element={<History />} />
+                <Route path='interview/:sessionId' element={<InterviewRunner />} />
+                <Route path='video-interview/:sessionId' element={<VideoInterviewRunner />} />
+                <Route path='review/:sessionId' element={<SessionReview />} />
+              </Route>
+            </Route>
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+
+        <ToastContainer theme="light" position='top-right' autoClose={3000} />
+      </div>
+    </ErrorBoundary>
   );
 }
 
