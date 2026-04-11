@@ -61,7 +61,6 @@ The system supports multiple interview formats, difficulty levels, and company-s
 - **Framework**: React 19.2.0 with Vite
 - **State Management**: Redux Toolkit
 - **Routing**: React Router v7
-- **Code Editor**: Monaco Editor
 - **Charts**: Chart.js with React wrapper
 - **Real-time Communication**: Socket.io Client
 - **Styling**: Tailwind CSS
@@ -81,6 +80,7 @@ The system supports multiple interview formats, difficulty levels, and company-s
 
 - **Framework**: FastAPI
 - **Speech Recognition**: OpenAI Whisper
+- **video/audio processing**: Cv2, Pydub
 - **LLM Models**:
   - Gemini (Google API)
   - Ollama (Local models: Phi, Mistral)
